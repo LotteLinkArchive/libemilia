@@ -94,7 +94,6 @@ union hh_pstypebuf_u hh_psfield_get(struct hh_psbuf_s buffer, unsigned int index
 	hh_psfield_set(buffer, index, _ESVUTEMP);\
 } while (0)
 
-
 #define hh_psfield_eget(buffer, index, type) ({\
 	type _ESVTEMP;\
 	union hh_pstypebuf_u _ESVUTEMP = hh_psfield_get(buffer, index);\
