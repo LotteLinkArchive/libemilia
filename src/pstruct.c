@@ -1,11 +1,13 @@
 #include "../include/pstruct.h"
 #include <string.h>
+#include <stdlib.h>
 
 struct hh_psformat_s hh_make_psformat(const char *format_string)
 {
 	struct hh_psformat_s output = {
 		.format_string = format_string,
-		.format_str_chars = strlen(format_string)
+		.format_str_chars = strlen(format_string),
+		.status = HH_STATUS_OKAY
 	};
 
 	for (;;) {
@@ -30,4 +32,36 @@ struct hh_psformat_s hh_make_psformat(const char *format_string)
 	}
 hh_psformat_jlexp:
 	return output;
+}
+
+struct hh_psbuf_s hh_psmkbuf(struct hh_psformat_s *format, void *data)
+{
+	struct hh_psbuf_s output = {
+		.format = format,
+		.allocated_by_us = false,
+		.status = HH_STATUS_OKAY
+	};
+
+	if (data) output.data = data; goto hh_psmkbuf_done;
+
+	output.allocated_by_us = true;
+	output.data = malloc(format->data_length);
+	if (!data) output.status = HH_OUT_OF_MEMORY; goto hh_psmkbuf_done;
+	
+	memset(output.data, 0, format->data_length);
+hh_psmkbuf_done:
+	return output;
+}
+
+hh_status_t hh_psfreebuf(struct hh_psbuf_s buffer, bool remote_override)
+{
+	if ((buffer.allocated_by_us || remote_override) && buffer.data) {
+		free(buffer.data);
+		buffer.data = NULL;
+		return HH_STATUS_OKAY;
+	}
+
+	if (!buffer.data) return HH_DOUBLE_FREE;
+	
+	return HH_REMOTE_ALLOC;
 }

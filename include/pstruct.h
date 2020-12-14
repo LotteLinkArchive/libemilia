@@ -1,6 +1,9 @@
 #pragma once
 #include "status.h"
 #include <stddef.h>
+#include <stdint.h>
+#include <stdarg.h>
+#include <stdbool.h>
 
 enum hh_pstruct_types_e {
 	HH_PSTYPE_PAD    = 'x', /* 1 B */
@@ -21,6 +24,7 @@ enum hh_pstruct_types_e {
 	HH_PSTYPE_DOUBLE = 'd'  /* 8 B */
 };
 
+/* Representation of a pstruct */
 struct hh_psformat_s {
 	/* The original format string, e.g "BbBbxxxxIIII" */
 	const char *format_string;
@@ -37,3 +41,22 @@ struct hh_psformat_s {
 	/* Will be a non-zero value if creation of the pstruct failed. */
 	hh_status_t status;
 };
+
+/* Wrapper for the data produced by a pstruct */
+struct hh_psbuf_s {
+	/* The actual data */
+	uint8_t *data;
+
+	/* The encoding/decoding format */
+	struct hh_psformat_s *format;
+
+	/* The status code. Will be non-zero if failed to create the buffer object */
+	hh_status_t status;
+
+	/* Whether or not this buffer was allocated by the pstruct system itself */
+	bool allocated_by_us;
+};
+
+struct hh_psformat_s hh_make_psformat(const char *format_string);
+struct hh_psbuf_s hh_psmkbuf(struct hh_psformat_s *format, void *data);
+hh_status_t hh_psfreebuf(struct hh_psbuf_s buffer, bool remote_override);
