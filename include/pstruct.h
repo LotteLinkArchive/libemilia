@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <string.h>
 
 enum hh_pstruct_types_e {
 	HH_PSTYPE_PAD    = 'x', /* 1 B */
@@ -85,3 +86,23 @@ void hh_psupdbuf(struct hh_psbuf_s buffer, void *data);
 hh_status_t hh_psfreebuf(struct hh_psbuf_s buffer);
 void hh_psfield_set(struct hh_psbuf_s buffer, unsigned int index, union hh_pstypebuf_u value);
 union hh_pstypebuf_u hh_psfield_get(struct hh_psbuf_s buffer, unsigned int index);
+
+#define hh_psfield_eset(buffer, index, value) do {\
+	__typeof__(value) _ESVTEMP = (value);\
+	union hh_pstypebuf_u _ESVUTEMP;\
+	memcpy(&_ESVUTEMP, &_ESVTEMP, sizeof(_ESVTEMP));\
+	hh_psfield_set(buffer, index, _ESVUTEMP);\
+} while (0)
+
+
+#define hh_psfield_eget(buffer, index, type) ({\
+	type _ESVTEMP;\
+	union hh_pstypebuf_u _ESVUTEMP = hh_psfield_get(buffer, index);\
+	memcpy(&_ESVTEMP, &_ESVUTEMP, sizeof(type));\
+	_ESVTEMP;\
+})
+
+#define hh_psfield_evget(buffer, index, variable) do {\
+	union hh_pstypebuf_u _ESVUTEMP = hh_psfield_get(buffer, index);\
+	memcpy(&variable, &_ESVUTEMP, sizeof(variable));\
+} while (0)
