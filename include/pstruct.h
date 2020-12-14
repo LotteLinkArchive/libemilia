@@ -55,7 +55,7 @@ struct hh_psformat_s {
 struct hh_psbuf_s {
 	/* The actual data */
 	struct hh_psfield_s *fields;
-	void *buffer;
+	uint8_t *buffer;
 
 	/* The encoding/decoding format */
 	struct hh_psformat_s *format;
