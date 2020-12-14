@@ -66,50 +66,46 @@ struct hh_psbuf_s hh_psmkbuf(struct hh_psformat_s *format, void *data)
 	};
 
 	output.fields = malloc(format->variables * sizeof(struct hh_psfield_s));
-	if (!output.fields) {
-		output.status = HH_OUT_OF_MEMORY;
-		return output;
-	}
+	if (!output.fields) goto hh_psmkbuf_oom;
 	memset(output.fields, 0, format->variables * sizeof(struct hh_psfield_s));
+
+	output.buffer = malloc(format->data_length);
+	if (!output.buffer) goto hh_psmkbuf_oom;
+	if (data) memcpy(output.buffer, data, format->data_length);
+	else memset(output.buffer, 0, format->data_length);
+	uint8_t *bdata = output.buffer;
 
 	const char *format_string = format->format_string;
 	size_t field_index;
 
 	for (;;) {
 		struct hh_pstype_s cproc = hh_pstype_get(*format_string++);
+		
 		if (cproc.type == '\0') break;
-
-		if (!cproc.is_variable && cproc.is_valid && data) data = (uint8_t *)data + cproc.bytes;
-		if (!cproc.is_variable || !cproc.is_valid) continue;
+		if (!cproc.is_valid) continue;
+		if (!cproc.is_variable) goto hh_psmkbuf_mvnb;
 
 		output.fields[field_index].type = cproc.type;
 		output.fields[field_index].bytes = cproc.bytes;
 		
-		output.fields[field_index].data = malloc(cproc.bytes);
-		if (!output.fields[field_index].data) {
-			output.status = HH_OUT_OF_MEMORY;
-			return output;
-		}
-		
-		if (data) {
-			memcpy(output.fields[field_index].data, data, cproc.bytes);
-			data = (uint8_t *)data + cproc.bytes;
-		} else {
-			memset(output.fields[field_index].data, 0, cproc.bytes);
-		}
+		output.fields[field_index].data = bdata;
 
 		field_index++;
+hh_psmkbuf_mvnb:
+		bdata = bdata + cproc.bytes;
 	}
 
+	return output;
+hh_psmkbuf_oom:
+	output.status = HH_OUT_OF_MEMORY;
 	return output;
 }
 
 hh_status_t hh_psfreebuf(struct hh_psbuf_s buffer)
 {
-	if (!buffer.fields) return HH_DOUBLE_FREE;
+	if (!buffer.fields || !buffer.buffer) return HH_DOUBLE_FREE;
 
-	for (size_t x = 0; x < buffer.format->variables; x++)
-		free(buffer.fields[x].data);
+	free(buffer.buffer);
 	free(buffer.fields);
 
 	return HH_STATUS_OKAY;
