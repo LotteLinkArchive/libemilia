@@ -1,6 +1,16 @@
 #include "../include/pstruct.h"
 #include <string.h>
 #include <stdlib.h>
+#include <arpa/inet.h>
+
+/* Endian conversion for uint64_t/int64_t */
+#if __BIG_ENDIAN__
+# define htonll(x) (x)
+# define ntohll(x) (x)
+#else
+# define htonll(x) ((uint64_t)htonl((x) & 0xFFFFFFFF) << 32) | htonl((x) >> 32)
+# define ntohll(x) ((uint64_t)ntohl((x) & 0xFFFFFFFF) << 32) | ntohl((x) >> 32)
+#endif
 
 /* Representation of a type */
 struct hh_pstype_s {
@@ -76,7 +86,7 @@ struct hh_psbuf_s hh_psmkbuf(struct hh_psformat_s *format, void *data)
 	uint8_t *bdata = output.buffer;
 
 	const char *format_string = format->format_string;
-	size_t field_index;
+	unsigned int field_index;
 
 	for (;;) {
 		struct hh_pstype_s cproc = hh_pstype_get(*format_string++);
@@ -108,6 +118,59 @@ hh_status_t hh_psfreebuf(struct hh_psbuf_s buffer)
 
 	free(buffer.buffer);
 	free(buffer.fields);
+	buffer.buffer = NULL;
+	buffer.fields = NULL;
 
 	return HH_STATUS_OKAY;
+}
+
+void hh_psfield_set(struct hh_psbuf_s buffer, unsigned int index, union hh_pstypebuf_u value)
+{
+	switch (buffer.fields[index].type) {
+		case HH_PSTYPE_U16:
+		case HH_PSTYPE_I16:
+			value.uint16 = htons(value.uint16);
+			break;
+		case HH_PSTYPE_FLOAT:
+		case HH_PSTYPE_U32:
+		case HH_PSTYPE_I32:
+			value.uint32 = htonl(value.uint32);
+			break;
+		case HH_PSTYPE_DOUBLE:
+		case HH_PSTYPE_U64:
+		case HH_PSTYPE_I64:
+			value.uint64 = htonll(value.uint64);
+			break;
+		default:
+			break;
+	}
+
+	memcpy(buffer.fields[index].data, &value, buffer.fields[index].bytes);
+}
+
+union hh_pstypebuf_u hh_psfield_get(struct hh_psbuf_s buffer, unsigned int index)
+{
+	union hh_pstypebuf_u value;
+	memcpy(&value, buffer.fields[index].data, buffer.fields[index].bytes);
+
+	switch (buffer.fields[index].type) {
+		case HH_PSTYPE_U16:
+		case HH_PSTYPE_I16:
+			value.uint16 = ntohs(value.uint16);
+			break;
+		case HH_PSTYPE_FLOAT:
+		case HH_PSTYPE_U32:
+		case HH_PSTYPE_I32:
+			value.uint32 = ntohl(value.uint32);
+			break;
+		case HH_PSTYPE_DOUBLE:
+		case HH_PSTYPE_U64:
+		case HH_PSTYPE_I64:
+			value.uint64 = ntohll(value.uint64);
+			break;
+		default:
+			break;
+	}
+
+	return value;
 }

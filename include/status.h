@@ -6,7 +6,8 @@ enum hh_status_codes_e {
 	HH_INVALID_TYPE,
 	HH_OUT_OF_MEMORY,
 	HH_REMOTE_ALLOC,
-	HH_DOUBLE_FREE
+	HH_DOUBLE_FREE,
+	HH_OUT_OF_BOUNDS
 };
 
 typedef unsigned char hh_status_t;

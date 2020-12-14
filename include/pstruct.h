@@ -24,6 +24,21 @@ enum hh_pstruct_types_e {
 	HH_PSTYPE_DOUBLE = 'd'  /* 8 B */
 };
 
+/* Union of all of the available primitive types */
+union hh_pstypebuf_u {
+	uint8_t uint8;
+	int8_t int8;
+	bool bool8;
+	uint16_t uint16;
+	int16_t int16;
+	uint32_t uint32;
+	int32_t int32;
+	uint64_t uint64;
+	int64_t int64;
+	float float32;
+	double double64;
+};
+
 /* Representation of a pstruct field */
 struct hh_psfield_s {
 	char type;
