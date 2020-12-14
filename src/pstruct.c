@@ -1,5 +1,4 @@
 #include "../include/pstruct.h"
-#include <string.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
 
@@ -131,22 +130,22 @@ hh_status_t hh_psfreebuf(struct hh_psbuf_s buffer)
 
 #define TIPSY_CONVERT(hhpstype, s_f, l_f, ll_f)\
 switch (hhpstype) {\
-	case HH_PSTYPE_U16:\
-	case HH_PSTYPE_I16:\
-		value.uint16 = s_f(value.uint16);\
-		break;\
-	case HH_PSTYPE_FLOAT:\
-	case HH_PSTYPE_U32:\
-	case HH_PSTYPE_I32:\
-		value.uint32 = l_f(value.uint32);\
-		break;\
-	case HH_PSTYPE_DOUBLE:\
-	case HH_PSTYPE_U64:\
-	case HH_PSTYPE_I64:\
-		value.uint64 = ll_f(value.uint64);\
-		break;\
-	default:\
-		break;\
+case HH_PSTYPE_U16:\
+case HH_PSTYPE_I16:\
+	value.uint16 = s_f(value.uint16);\
+	break;\
+case HH_PSTYPE_FLOAT:\
+case HH_PSTYPE_U32:\
+case HH_PSTYPE_I32:\
+	value.uint32 = l_f(value.uint32);\
+	break;\
+case HH_PSTYPE_DOUBLE:\
+case HH_PSTYPE_U64:\
+case HH_PSTYPE_I64:\
+	value.uint64 = ll_f(value.uint64);\
+	break;\
+default:\
+	break;\
 }
 
 void hh_psfield_set(struct hh_psbuf_s buffer, unsigned int index, union hh_pstypebuf_u value)
@@ -167,3 +166,35 @@ union hh_pstypebuf_u hh_psfield_get(struct hh_psbuf_s buffer, unsigned int index
 }
 
 #undef TIPSY_CONVERT
+
+void hh_psbuf_vpack(struct hh_psbuf_s buffer, va_list ivariables)
+{
+	for (unsigned int field_index = 0; field_index < buffer.format->variables; field_index++) {
+		union hh_pstypebuf_u ivbuf;
+
+		switch (buffer.fields[field_index].type) {
+		case HH_PSTYPE_U8:     /* Are these first few even safe? */
+		case HH_PSTYPE_I8:
+		case HH_PSTYPE_U16:
+		case HH_PSTYPE_I16:
+		case HH_PSTYPE_I32:
+		case HH_PSTYPE_BOOL:   ivbuf.int32    = va_arg(ivariables, int32_t ); break; /* Repeat needed? */
+		case HH_PSTYPE_U32:    ivbuf.uint32   = va_arg(ivariables, uint32_t); break;
+		case HH_PSTYPE_U64:    ivbuf.uint64   = va_arg(ivariables, uint64_t); break;
+		case HH_PSTYPE_I64:    ivbuf.int64    = va_arg(ivariables, int64_t ); break;
+		case HH_PSTYPE_FLOAT:  ivbuf.float32  = va_arg(ivariables, double  ); break; /* Repeat needed? */
+		case HH_PSTYPE_DOUBLE: ivbuf.double64 = va_arg(ivariables, double  ); break;
+		default: break;
+		}
+
+		hh_psfield_set(buffer, field_index, ivbuf);
+	}
+}
+
+void hh_psbuf_pack(struct hh_psbuf_s buffer, ...)
+{
+	va_list ivariables;
+	va_start(ivariables, buffer);
+	hh_psbuf_vpack(buffer, ivariables);
+	va_end(ivariables);
+}

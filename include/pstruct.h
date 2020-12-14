@@ -2,9 +2,9 @@
 #include "status.h"
 #include <stddef.h>
 #include <stdint.h>
-#include <stdarg.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdarg.h>
 
 enum hh_pstruct_types_e {
 	HH_PSTYPE_PAD    = 'x', /* 1 B */
@@ -105,3 +105,6 @@ union hh_pstypebuf_u hh_psfield_get(struct hh_psbuf_s buffer, unsigned int index
 	union hh_pstypebuf_u _ESVUTEMP = hh_psfield_get(buffer, index);\
 	memcpy(&variable, &_ESVUTEMP, sizeof(variable));\
 } while (0)
+
+void hh_psbuf_vpack(struct hh_psbuf_s buffer, va_list ivariables);
+void hh_psbuf_pack(struct hh_psbuf_s buffer, ...);
