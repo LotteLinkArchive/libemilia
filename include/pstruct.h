@@ -24,16 +24,6 @@ enum hh_pstruct_types_e {
 	HH_PSTYPE_DOUBLE = 'd'  /* 8 B */
 };
 
-/* Representation of a type */
-struct hh_pstype_s {
-	char type;
-
-	size_t bytes;
-
-	bool is_variable;
-	bool is_valid;
-};
-
 /* Representation of a pstruct field */
 struct hh_psfield_s {
 	char type;
@@ -72,3 +62,7 @@ struct hh_psbuf_s {
 	/* The status code. Will be non-zero if failed to create the buffer object */
 	hh_status_t status;
 };
+
+struct hh_psformat_s hh_make_psformat(const char *format_string);
+struct hh_psbuf_s hh_psmkbuf(struct hh_psformat_s *format, void *data);
+hh_status_t hh_psfreebuf(struct hh_psbuf_s buffer);

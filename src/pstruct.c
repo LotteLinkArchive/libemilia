@@ -2,6 +2,17 @@
 #include <string.h>
 #include <stdlib.h>
 
+/* Representation of a type */
+struct hh_pstype_s {
+	char type;
+
+	size_t bytes;
+
+	bool is_variable;
+	bool is_valid;
+};
+
+/* This function just does type property recognition. It finds out the validity, variableness and size of a type. */
 struct hh_pstype_s hh_pstype_get(char type)
 {
 	struct hh_pstype_s output = {.type = type, .is_valid = true, .is_variable = true};
