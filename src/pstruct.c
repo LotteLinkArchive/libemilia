@@ -143,7 +143,7 @@ switch (hhpstype) {\
 	case HH_PSTYPE_DOUBLE:\
 	case HH_PSTYPE_U64:\
 	case HH_PSTYPE_I64:\
-		value.uint64 = htonll(value.uint64);\
+		value.uint64 = ll_f(value.uint64);\
 		break;\
 	default:\
 		break;\
