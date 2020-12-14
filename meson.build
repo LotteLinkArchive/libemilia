@@ -1,0 +1,6 @@
+project('hexhive', 'c')
+hexhive_incdir = include_directories('include')
+subdir('include')
+subdir('src')
+hexhive_dep = declare_dependency(include_directories : hexhive_incdir, link_with : hexhive)
+subdir('tests')
