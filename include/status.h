@@ -6,3 +6,5 @@ enum hh_status_codes_e {
 };
 
 typedef unsigned char hh_status_t;
+
+const char *hh_status_str(hh_status_t status_code);
