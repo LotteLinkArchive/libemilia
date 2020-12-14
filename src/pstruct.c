@@ -129,26 +129,29 @@ hh_status_t hh_psfreebuf(struct hh_psbuf_s buffer)
 	return HH_STATUS_OKAY;
 }
 
+#define TIPSY_CONVERT(hhpstype, s_f, l_f, ll_f)\
+switch (hhpstype) {\
+	case HH_PSTYPE_U16:\
+	case HH_PSTYPE_I16:\
+		value.uint16 = s_f(value.uint16);\
+		break;\
+	case HH_PSTYPE_FLOAT:\
+	case HH_PSTYPE_U32:\
+	case HH_PSTYPE_I32:\
+		value.uint32 = l_f(value.uint32);\
+		break;\
+	case HH_PSTYPE_DOUBLE:\
+	case HH_PSTYPE_U64:\
+	case HH_PSTYPE_I64:\
+		value.uint64 = htonll(value.uint64);\
+		break;\
+	default:\
+		break;\
+}
+
 void hh_psfield_set(struct hh_psbuf_s buffer, unsigned int index, union hh_pstypebuf_u value)
 {
-	switch (buffer.fields[index].type) {
-		case HH_PSTYPE_U16:
-		case HH_PSTYPE_I16:
-			value.uint16 = htons(value.uint16);
-			break;
-		case HH_PSTYPE_FLOAT:
-		case HH_PSTYPE_U32:
-		case HH_PSTYPE_I32:
-			value.uint32 = htonl(value.uint32);
-			break;
-		case HH_PSTYPE_DOUBLE:
-		case HH_PSTYPE_U64:
-		case HH_PSTYPE_I64:
-			value.uint64 = htonll(value.uint64);
-			break;
-		default:
-			break;
-	}
+	TIPSY_CONVERT(buffer.fields[index].type, htons, htonl, htonll);
 
 	memcpy(buffer.fields[index].data, &value, buffer.fields[index].bytes);
 }
@@ -158,24 +161,9 @@ union hh_pstypebuf_u hh_psfield_get(struct hh_psbuf_s buffer, unsigned int index
 	union hh_pstypebuf_u value;
 	memcpy(&value, buffer.fields[index].data, buffer.fields[index].bytes);
 
-	switch (buffer.fields[index].type) {
-		case HH_PSTYPE_U16:
-		case HH_PSTYPE_I16:
-			value.uint16 = ntohs(value.uint16);
-			break;
-		case HH_PSTYPE_FLOAT:
-		case HH_PSTYPE_U32:
-		case HH_PSTYPE_I32:
-			value.uint32 = ntohl(value.uint32);
-			break;
-		case HH_PSTYPE_DOUBLE:
-		case HH_PSTYPE_U64:
-		case HH_PSTYPE_I64:
-			value.uint64 = ntohll(value.uint64);
-			break;
-		default:
-			break;
-	}
+	TIPSY_CONVERT(buffer.fields[index].type, ntohs, ntohl, ntohll);
 
 	return value;
 }
+
+#undef TIPSY_CONVERT
