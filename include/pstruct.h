@@ -24,6 +24,25 @@ enum hh_pstruct_types_e {
 	HH_PSTYPE_DOUBLE = 'd'  /* 8 B */
 };
 
+/* Representation of a type */
+struct hh_pstype_s {
+	char type;
+
+	size_t bytes;
+
+	bool is_variable;
+	bool is_valid;
+};
+
+/* Representation of a pstruct field */
+struct hh_psfield_s {
+	char type;
+
+	size_t bytes;
+
+	void *data;
+};
+
 /* Representation of a pstruct */
 struct hh_psformat_s {
 	/* The original format string, e.g "BbBbxxxxIIII" */
@@ -42,21 +61,14 @@ struct hh_psformat_s {
 	hh_status_t status;
 };
 
-/* Wrapper for the data produced by a pstruct */
+/* Modifiable pstruct buffer */
 struct hh_psbuf_s {
 	/* The actual data */
-	uint8_t *data;
+	struct hh_psfield_s *fields;
 
 	/* The encoding/decoding format */
 	struct hh_psformat_s *format;
 
 	/* The status code. Will be non-zero if failed to create the buffer object */
 	hh_status_t status;
-
-	/* Whether or not this buffer was allocated by the pstruct system itself */
-	bool allocated_by_us;
 };
-
-struct hh_psformat_s hh_make_psformat(const char *format_string);
-struct hh_psbuf_s hh_psmkbuf(struct hh_psformat_s *format, void *data);
-hh_status_t hh_psfreebuf(struct hh_psbuf_s buffer, bool remote_override);
