@@ -80,7 +80,7 @@ struct hh_psbuf_s hh_psmkbuf(struct hh_psformat_s *format, void *data)
 
 	for (;;) {
 		struct hh_pstype_s cproc = hh_pstype_get(*format_string++);
-		
+
 		if (cproc.type == '\0') break;
 		if (!cproc.is_valid) continue;
 		if (!cproc.is_variable) goto hh_psmkbuf_mvnb;
@@ -95,10 +95,11 @@ hh_psmkbuf_mvnb:
 		bdata = bdata + cproc.bytes;
 	}
 
+hh_psmkbuf_exit:
 	return output;
 hh_psmkbuf_oom:
 	output.status = HH_OUT_OF_MEMORY;
-	return output;
+	goto hh_psmkbuf_exit;
 }
 
 hh_status_t hh_psfreebuf(struct hh_psbuf_s buffer)
