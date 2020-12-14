@@ -1,0 +1,6 @@
+t_psformat = executable('psformat', 'psformat.c', dependencies : [hexhive_dep])
+test('test_psformat', t_psformat)
+t_psbuffer = executable('psbuffer', 'psbuffer.c', dependencies : [hexhive_dep])
+test('test_psbuffer', t_psbuffer)
+t_pssetget = executable('pssetget', 'pssetget.c', dependencies : [hexhive_dep])
+test('test_pssetget', t_pssetget)

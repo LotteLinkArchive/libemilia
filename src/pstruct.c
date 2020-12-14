@@ -86,7 +86,7 @@ struct hh_psbuf_s hh_psmkbuf(struct hh_psformat_s *format, void *data)
 	uint8_t *bdata = output.buffer;
 
 	const char *format_string = format->format_string;
-	unsigned int field_index;
+	unsigned int field_index = 0;
 
 	for (;;) {
 		struct hh_pstype_s cproc = hh_pstype_get(*format_string++);
@@ -110,6 +110,11 @@ hh_psmkbuf_exit:
 hh_psmkbuf_oom:
 	output.status = HH_OUT_OF_MEMORY;
 	goto hh_psmkbuf_exit;
+}
+
+void hh_psupdbuf(struct hh_psbuf_s buffer, void *data)
+{
+	memcpy(buffer.buffer, data, buffer.format->data_length);
 }
 
 hh_status_t hh_psfreebuf(struct hh_psbuf_s buffer)

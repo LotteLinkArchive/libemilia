@@ -81,4 +81,7 @@ struct hh_psbuf_s {
 
 struct hh_psformat_s hh_make_psformat(const char *format_string);
 struct hh_psbuf_s hh_psmkbuf(struct hh_psformat_s *format, void *data);
+void hh_psupdbuf(struct hh_psbuf_s buffer, void *data);
 hh_status_t hh_psfreebuf(struct hh_psbuf_s buffer);
+void hh_psfield_set(struct hh_psbuf_s buffer, unsigned int index, union hh_pstypebuf_u value);
+union hh_pstypebuf_u hh_psfield_get(struct hh_psbuf_s buffer, unsigned int index);
