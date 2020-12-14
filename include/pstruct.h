@@ -80,13 +80,43 @@ struct hh_psbuf_s {
 	hh_status_t status;
 };
 
+/* Use this to make a Portable/Primitive Struct Format.
+ * Valid format string types: xBb?HhIiQqfd (See above)
+ * The format must be constant, and remain in memory throughout the execution of the whole program.
+ * You do not need to destroy a format (at least, for now).
+ * Formats can be re-used throughout the lifetime of the program, and are thread safe.
+ */
 struct hh_psformat_s hh_make_psformat(const char *format_string);
+
+/* Use this to create a Portable/Primitive Struct Buffer.
+ * This is a buffer, based on a format, that is fully mutable. You cannot change a buffer's format
+ * once it has been created. Feed it `data` if you already have existing data to read. If you don't,
+ * use NULL.
+ * You MUST destroy a buffer (with `hh_psfreebuf`) when you are done with it. You can, however, keep
+ * re-using a single buffer throughout the program if you wish.
+ */
 struct hh_psbuf_s hh_psmkbuf(struct hh_psformat_s *format, void *data);
+
+/* Updates all of the data in a buffer with the provided data. Cannot be NULL. Input data must be
+ * the same length as buffer.format->data_length, or expect undefined behaviour.
+ */
 void hh_psupdbuf(struct hh_psbuf_s buffer, void *data);
+
+/* Destroy a buffer. Will return HH_DOUBLE_FREE if you already called this on a buffer before.
+ * This removes the built-in field abstraction AND the produced data.
+ */
 hh_status_t hh_psfreebuf(struct hh_psbuf_s buffer);
+
+/* Set/get a value in a buffer. Type is automatically determined and auto-picked from the union
+ * depending on the index. DO NOT go out of bounds.
+ */
 void hh_psfield_set(struct hh_psbuf_s buffer, unsigned int index, union hh_pstypebuf_u value);
 union hh_pstypebuf_u hh_psfield_get(struct hh_psbuf_s buffer, unsigned int index);
 
+/* Abstractions for the set/get functions so that you don't have to use a union. In most cases,
+ * you'll only need eset/eget. You should try to use these as much as possible, they're easier
+ * to follow.
+ */
 #define hh_psfield_eset(buffer, index, value) do {\
 	__typeof__(value) _ESVTEMP = (value);\
 	union hh_pstypebuf_u _ESVUTEMP;\
@@ -101,10 +131,17 @@ union hh_pstypebuf_u hh_psfield_get(struct hh_psbuf_s buffer, unsigned int index
 	_ESVTEMP;\
 })
 
+/* This abstraction macro is specifically intended for filling an external variable.
+ * You'll rarely have to use this, in most cases `eget` will do.
+ */
 #define hh_psfield_evget(buffer, index, variable) do {\
 	union hh_pstypebuf_u _ESVUTEMP = hh_psfield_get(buffer, index);\
 	memcpy(&variable, &_ESVUTEMP, sizeof(variable));\
 } while (0)
 
+/* Packing functions similar to Python's struct.pack. All of the provided arguments must be
+ * exactly the right type and there must be exactly the right amount of them (see
+ * buffer.format->variables).
+ */
 void hh_psbuf_vpack(struct hh_psbuf_s buffer, va_list ivariables);
 void hh_psbuf_pack(struct hh_psbuf_s buffer, ...);
