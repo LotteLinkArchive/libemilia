@@ -198,3 +198,10 @@ void hh_psbuf_pack(struct hh_psbuf_s *buffer, ...)
 	hh_psbuf_vpack(buffer, ivariables);
 	va_end(ivariables);
 }
+
+struct hh_psfinal_s hh_psfinalize(struct hh_psbuf_s *buffer)
+{
+	struct hh_psfinal_s data = {.data = buffer->buffer, .data_length = buffer->format->data_length};
+
+	return data;
+}

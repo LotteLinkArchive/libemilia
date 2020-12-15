@@ -81,6 +81,13 @@ struct hh_psbuf_s {
 	hh_status_t status;
 };
 
+/* A finalized pstruct (Data pointer points to the data in a buffer - do NOT free a buffer until done with this) */
+struct hh_psfinal_s {
+	uint8_t *data;
+
+	size_t data_length;
+};
+
 /* Use this to make a Portable/Primitive Struct Format.
  * Valid format string types: xBb?HhIiQqfd (See above)
  * The format must be constant, and remain in memory throughout the execution of the whole program.
@@ -146,3 +153,12 @@ HH_EXTERN union hh_pstypebuf_u hh_psfield_get(struct hh_psbuf_s *buffer, unsigne
  */
 HH_EXTERN void hh_psbuf_vpack(struct hh_psbuf_s *buffer, va_list ivariables);
 HH_EXTERN void hh_psbuf_pack(struct hh_psbuf_s *buffer, ...);
+
+/* "Finalizes" a provided buffer. This doesn't really change the buffer at all, but it does
+ * return a new structure that makes it easier to transmit the data. The returned structure
+ * contains a "data" element (which represents the bytes of the pstruct) and a "data_length"
+ * element (which is the amount of bytes in "data"). The "data" pointer points to the "buffer"
+ * region inside the given buffer, so DO NOT free the buffer until you're done using the
+ * finalized data.
+ */
+HH_EXTERN struct hh_psfinal_s hh_psfinalize(struct hh_psbuf_s *buffer);
