@@ -62,7 +62,7 @@ struct hh_psformat_s {
 	size_t data_length;
 	
 	/* The amount of user-configurable variables in the format string, e.g 8 (using above example) */
-	size_t variables;
+	unsigned int variables;
 
 	/* Will be a non-zero value if creation of the pstruct failed. */
 	hh_status_t status;
