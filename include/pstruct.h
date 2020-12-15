@@ -86,6 +86,9 @@ struct hh_psfinal_s {
 	uint8_t *data;
 
 	size_t data_length;
+
+	/* Whether or not this struct has its own related malloc */
+	bool isolated;
 };
 
 /* Use this to make a Portable/Primitive Struct Format.
@@ -162,3 +165,13 @@ HH_EXTERN void hh_psbuf_pack(struct hh_psbuf_s *buffer, ...);
  * finalized data.
  */
 HH_EXTERN struct hh_psfinal_s hh_psfinalize(struct hh_psbuf_s *buffer);
+
+/* Isolates a finalized buffer from the mutable host buffer by allocating a separate region
+ * of memory and copying the contents of the mutable buffer to the finalized buffer.
+ */
+HH_EXTERN hh_status_t hh_psfinal_isolate(struct hh_psfinal_s *final_ps);
+
+/* Destroys an isolated, finalized buffer by freeing the allocated memory and setting the
+ * data pointer to NULL. Will return HH_REMOTE_ALLOC if not isolated.
+ */
+HH_EXTERN hh_status_t hh_psfin_isodestroy(struct hh_psfinal_s *final_ps);

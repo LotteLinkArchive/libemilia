@@ -201,7 +201,35 @@ void hh_psbuf_pack(struct hh_psbuf_s *buffer, ...)
 
 struct hh_psfinal_s hh_psfinalize(struct hh_psbuf_s *buffer)
 {
-	struct hh_psfinal_s data = {.data = buffer->buffer, .data_length = buffer->format->data_length};
+	struct hh_psfinal_s data = {
+		.data = buffer->buffer,
+		.data_length = buffer->format->data_length,
+		.isolated = false
+	};
 
 	return data;
+}
+
+hh_status_t hh_psfinal_isolate(struct hh_psfinal_s *final_ps)
+{
+	void *ndata = malloc(final_ps->data_length);
+	if (!ndata) return HH_OUT_OF_MEMORY;
+
+	final_ps->isolated = true;
+
+	memcpy(ndata, final_ps->data, final_ps->data_length);
+	final_ps->data = ndata;
+
+	return HH_STATUS_OKAY;
+}
+
+hh_status_t hh_psfin_isodestroy(struct hh_psfinal_s *final_ps)
+{
+	if (!final_ps->isolated) return HH_REMOTE_ALLOC;
+	if (!final_ps->data) return HH_DOUBLE_FREE;
+
+	free(final_ps->data);
+	final_ps->data = NULL;
+
+	return HH_STATUS_OKAY;
 }
