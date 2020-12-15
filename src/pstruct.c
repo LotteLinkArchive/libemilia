@@ -111,19 +111,19 @@ hh_psmkbuf_oom:
 	goto hh_psmkbuf_exit;
 }
 
-void hh_psupdbuf(struct hh_psbuf_s buffer, void *data)
+void hh_psupdbuf(struct hh_psbuf_s *buffer, void *data)
 {
-	memcpy(buffer.buffer, data, buffer.format->data_length);
+	memcpy(buffer->buffer, data, buffer->format->data_length);
 }
 
-hh_status_t hh_psfreebuf(struct hh_psbuf_s buffer)
+hh_status_t hh_psfreebuf(struct hh_psbuf_s *buffer)
 {
-	if (!buffer.fields || !buffer.buffer) return HH_DOUBLE_FREE;
+	if (!buffer->fields || !buffer->buffer) return HH_DOUBLE_FREE;
 
-	free(buffer.buffer);
-	free(buffer.fields);
-	buffer.buffer = NULL;
-	buffer.fields = NULL;
+	free(buffer->buffer);
+	free(buffer->fields);
+	buffer->buffer = NULL;
+	buffer->fields = NULL;
 
 	return HH_STATUS_OKAY;
 }
@@ -148,31 +148,31 @@ default:\
 	break;\
 }
 
-void hh_psfield_set(struct hh_psbuf_s buffer, unsigned int index, union hh_pstypebuf_u value)
+void hh_psfield_set(struct hh_psbuf_s *buffer, unsigned int index, union hh_pstypebuf_u value)
 {
-	TIPSY_CONVERT(buffer.fields[index].type, htons, htonl, htonll);
+	TIPSY_CONVERT(buffer->fields[index].type, htons, htonl, htonll);
 
-	memcpy(buffer.fields[index].data, &value, buffer.fields[index].bytes);
+	memcpy(buffer->fields[index].data, &value, buffer->fields[index].bytes);
 }
 
-union hh_pstypebuf_u hh_psfield_get(struct hh_psbuf_s buffer, unsigned int index)
+union hh_pstypebuf_u hh_psfield_get(struct hh_psbuf_s *buffer, unsigned int index)
 {
 	union hh_pstypebuf_u value;
-	memcpy(&value, buffer.fields[index].data, buffer.fields[index].bytes);
+	memcpy(&value, buffer->fields[index].data, buffer->fields[index].bytes);
 
-	TIPSY_CONVERT(buffer.fields[index].type, ntohs, ntohl, ntohll);
+	TIPSY_CONVERT(buffer->fields[index].type, ntohs, ntohl, ntohll);
 
 	return value;
 }
 
 #undef TIPSY_CONVERT
 
-void hh_psbuf_vpack(struct hh_psbuf_s buffer, va_list ivariables)
+void hh_psbuf_vpack(struct hh_psbuf_s *buffer, va_list ivariables)
 {
-	for (unsigned int field_index = 0; field_index < buffer.format->variables; field_index++) {
+	for (unsigned int field_index = 0; field_index < buffer->format->variables; field_index++) {
 		union hh_pstypebuf_u ivbuf;
 
-		switch (buffer.fields[field_index].type) {
+		switch (buffer->fields[field_index].type) {
 		case HH_PSTYPE_U8:     /* Are these first few even safe? */
 		case HH_PSTYPE_I8:
 		case HH_PSTYPE_U16:
@@ -191,7 +191,7 @@ void hh_psbuf_vpack(struct hh_psbuf_s buffer, va_list ivariables)
 	}
 }
 
-void hh_psbuf_pack(struct hh_psbuf_s buffer, ...)
+void hh_psbuf_pack(struct hh_psbuf_s *buffer, ...)
 {
 	va_list ivariables;
 	va_start(ivariables, buffer);

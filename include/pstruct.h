@@ -100,18 +100,18 @@ struct hh_psbuf_s hh_psmkbuf(struct hh_psformat_s *format, void *data);
 /* Updates all of the data in a buffer with the provided data. Cannot be NULL. Input data must be
  * the same length as buffer.format->data_length, or expect undefined behaviour.
  */
-void hh_psupdbuf(struct hh_psbuf_s buffer, void *data);
+void hh_psupdbuf(struct hh_psbuf_s *buffer, void *data);
 
 /* Destroy a buffer. Will return HH_DOUBLE_FREE if you already called this on a buffer before.
  * This removes the built-in field abstraction AND the produced data.
  */
-hh_status_t hh_psfreebuf(struct hh_psbuf_s buffer);
+hh_status_t hh_psfreebuf(struct hh_psbuf_s *buffer);
 
 /* Set/get a value in a buffer. Type is automatically determined and auto-picked from the union
  * depending on the index. DO NOT go out of bounds.
  */
-void hh_psfield_set(struct hh_psbuf_s buffer, unsigned int index, union hh_pstypebuf_u value);
-union hh_pstypebuf_u hh_psfield_get(struct hh_psbuf_s buffer, unsigned int index);
+void hh_psfield_set(struct hh_psbuf_s *buffer, unsigned int index, union hh_pstypebuf_u value);
+union hh_pstypebuf_u hh_psfield_get(struct hh_psbuf_s *buffer, unsigned int index);
 
 /* Abstractions for the set/get functions so that you don't have to use a union. In most cases,
  * you'll only need eset/eget. You should try to use these as much as possible, they're easier
@@ -143,5 +143,5 @@ union hh_pstypebuf_u hh_psfield_get(struct hh_psbuf_s buffer, unsigned int index
  * exactly the right type and there must be exactly the right amount of them (see
  * buffer.format->variables).
  */
-void hh_psbuf_vpack(struct hh_psbuf_s buffer, va_list ivariables);
-void hh_psbuf_pack(struct hh_psbuf_s buffer, ...);
+void hh_psbuf_vpack(struct hh_psbuf_s *buffer, va_list ivariables);
+void hh_psbuf_pack(struct hh_psbuf_s *buffer, ...);
