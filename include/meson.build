@@ -1,4 +1,5 @@
 hexhive_headers = [
+	'gdefs.h',
 	'status.h',
 	'pstruct.h'
 ]
