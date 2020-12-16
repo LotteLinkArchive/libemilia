@@ -35,7 +35,7 @@ int hh_register_geti(struct hh_register_s *reg, uint64_t id)
 	int sort_finder = hh_i_bsr_reg(reg->elements, 0, reg->element_no - 1, id);
 	return sort_finder;
 hh_register_geti_ls:
-	for (size_t i; i < reg->element_no; i++) {
+	for (size_t i = 0; i < reg->element_no; i++) {
 		if (reg->elements[i].identifier == id) {
 			return i;
 		}
