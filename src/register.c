@@ -69,8 +69,7 @@ hh_status_t hh_register_add(struct hh_register_s *reg, uint64_t id, void *data)
 	/* Can't have duplicate identifiers! */
 	if (hh_register_get(reg, id)) return HH_EL_IN_REG;
 
-	reg->element_no++;
-	void *rmem = realloc(reg->elements, reg->element_no * sizeof(struct hh_register_el_s));
+	void *rmem = realloc(reg->elements, (reg->element_no + 1) * sizeof(struct hh_register_el_s));
 	if (!rmem) return HH_OUT_OF_MEMORY;
 
 	/* We've confirmed that the realloc was successful here, so it is nolonger possible to fail. */
@@ -80,7 +79,8 @@ hh_status_t hh_register_add(struct hh_register_s *reg, uint64_t id, void *data)
 		.data = data,
 		.identifier = id
 	};
-	reg->elements[reg->element_no - 1] = temp_el;
+	reg->elements[reg->element_no] = temp_el;
+	reg->element_no++;
 
 	/* The register is nolonger sorted, so we need to ensure that nobody thinks it is. */
 	reg->sorted = false;
