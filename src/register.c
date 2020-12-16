@@ -110,6 +110,36 @@ hh_status_t hh_register_del(struct hh_register_s *reg, uint64_t id)
 	return HH_STATUS_OKAY;
 }
 
+hh_status_t hh_register_set(struct hh_register_s *reg, uint64_t id, void *data)
+{
+	int idx = hh_register_geti(reg, id);
+	if (idx < 0) return HH_EL_NOT_FOUND;
+
+	reg->elements[idx].data = data;
+	return HH_STATUS_OKAY;
+}
+
+void hh_register_destroy(struct hh_register_s *reg)
+{
+	if (!reg->elements) return;
+	free(reg->elements);
+	reg->elements = NULL;
+	reg->element_no = 0;
+}
+
+unsigned int hh_register_els(struct hh_register_s *reg)
+{
+	return reg->element_no;
+}
+
+hh_status_t hh_register_getidx(struct hh_register_el_s *out, struct hh_register_s *reg, unsigned int idx)
+{
+	if (idx >= reg->element_no) return HH_OUT_OF_BOUNDS;
+
+	*out = reg->elements[idx];
+	return HH_STATUS_OKAY;
+}
+
 uint64_t hh_register_key(const void *data, size_t bytes)
 {
 	return XXH3_64bits(data, bytes);
