@@ -9,7 +9,9 @@ enum hh_status_codes_e {
 	HH_REMOTE_ALLOC,
 	HH_DOUBLE_FREE,
 	HH_OUT_OF_BOUNDS,
-	HH_DOUBLE_ALLOC
+	HH_DOUBLE_ALLOC,
+	HH_EL_IN_REG,
+	HH_EL_NOT_FOUND
 };
 
 typedef unsigned char hh_status_t;

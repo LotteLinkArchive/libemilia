@@ -10,6 +10,8 @@ const char *hh_status_str(hh_status_t status_code)
 	case HH_DOUBLE_FREE:   return "Attempted a double free, or tried to access previously freed memory!";
 	case HH_OUT_OF_BOUNDS: return "Index out of bounds!";
 	case HH_DOUBLE_ALLOC:  return "Tried to allocate a region that has already been allocated before!";
+	case HH_EL_IN_REG:     return "Unable to add an element to the register with a duplicate identifier!";
+	case HH_EL_NOT_FOUND:  return "Element not found in register!";
 	default:               return "Unknown error - no defined string form!";
 	}
 }
