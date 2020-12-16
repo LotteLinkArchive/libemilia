@@ -25,3 +25,5 @@ HH_EXTERN void *hh_register_get(struct hh_register_s *reg, uint64_t id);
 HH_EXTERN void hh_register_sort(struct hh_register_s *reg);
 HH_EXTERN hh_status_t hh_register_add(struct hh_register_s *reg, uint64_t id, void *data);
 HH_EXTERN hh_status_t hh_register_del(struct hh_register_s *reg, uint64_t id);
+HH_EXTERN uint64_t hh_register_key(const void *data, size_t bytes);
+HH_EXTERN uint64_t hh_register_strkey(const char *key);

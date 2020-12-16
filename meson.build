@@ -1,4 +1,8 @@
 project('hexhive', 'c')
+
+cc = meson.get_compiler('c')
+xxhash_dep = cc.find_library('xxhash', required : true)
+
 hexhive_incdir = include_directories('include')
 subdir('include')
 subdir('src')

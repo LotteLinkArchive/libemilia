@@ -1,5 +1,7 @@
 #include "../include/register.h"
 #include <stdlib.h>
+#include <string.h>
+#include <xxhash.h>
 
 struct hh_register_s hh_mkregister(bool autosort)
 {
@@ -106,4 +108,14 @@ hh_status_t hh_register_del(struct hh_register_s *reg, uint64_t id)
 	if (reg->sorting) hh_register_sort(reg);
 
 	return HH_STATUS_OKAY;
+}
+
+uint64_t hh_register_key(const void *data, size_t bytes)
+{
+	return XXH3_64bits(data, bytes);
+}
+
+uint64_t hh_register_strkey(const char *key)
+{
+	return hh_register_key(key, strlen(key) * sizeof(char));
 }
