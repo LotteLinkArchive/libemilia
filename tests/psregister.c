@@ -38,4 +38,14 @@ int main(void) {
 		printf("Failed integrity check for testdata on a sorted 5-element retrieval\n");
 		return EXIT_FAILURE;
 	}
+
+	if ((sbuf = hh_register_del(&treg, hh_register_strkey("foo")))) {
+		printf("Failed to remove initial register element with code %u\n", sbuf);
+		return EXIT_FAILURE;
+	}
+
+	if (hh_register_get(&treg,  hh_register_strkey("foo")) == testdata) {
+		printf("Initial register element deletion didn't work - I can still read it!\n");
+		return EXIT_FAILURE;
+	}
 }
