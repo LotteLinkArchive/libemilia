@@ -17,6 +17,8 @@ struct hh_register_s {
 
 	bool sorted;
 	bool sorting;
+
+	uint64_t identifier;
 };
 
 /* Make a brand new register with 0 elements. Doesn't actually allocate anything. (Until you add an element)

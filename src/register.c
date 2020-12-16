@@ -15,16 +15,15 @@ struct hh_register_s hh_mkregister(bool autosort)
 	return out;
 }
 
-int hh_i_bsr_reg(struct hh_register_el_s *o, int l, int r, uint64_t x) 
-{
-	/* Binary search implementation used on sorted registers for O(log n) access times */
-	if (r < l) return -1;
-
-	int mid = l + (r - l) / 2; 
-
-	if      (o[mid].identifier == x) return mid;
-	else if (o[mid].identifier >  x) return hh_i_bsr_reg(o, l, mid - 1, x);
-	else                             return hh_i_bsr_reg(o, mid + 1, r, x);
+int hh_i_bsr_reg(struct hh_register_el_s *o, int n, uint64_t x) {
+	int i = 0, j = n - 1;
+	while (i <= j) {
+		int k = i + ((j - i) / 2);
+		if      (o[k].identifier == x) return k;
+		else if (o[k].identifier <  x) i = k + 1;
+		else                           j = k - 1;
+	}
+	return -1;
 }
 
 int hh_register_geti(struct hh_register_s *reg, uint64_t id)
@@ -32,7 +31,7 @@ int hh_register_geti(struct hh_register_s *reg, uint64_t id)
 	/* We can speed things up *a lot* under certain conditions, so we check for those conditions */
 	if (reg->element_no < 1) return -1;
 	if (reg->sorted)
-		return hh_i_bsr_reg(reg->elements, 0, reg->element_no - 1, id);
+		return hh_i_bsr_reg(reg->elements, reg->element_no, id);
 	
 	/* If the register isn't sorted, we have to fall back to linear searching */
 	for (size_t i = 0; i < reg->element_no; i++)
@@ -50,7 +49,10 @@ void *hh_register_get(struct hh_register_s *reg, uint64_t id)
 
 int hh_i_rs_cmpfunc(const void *a, const void *b)
 {
-	return (*(struct hh_register_el_s *)a).identifier - (*(struct hh_register_el_s *)b).identifier;
+	uint64_t arg1 = (*(struct hh_register_el_s *)a).identifier;
+	uint64_t arg2 = (*(struct hh_register_el_s *)b).identifier;
+
+	return (arg1 > arg2) - (arg1 < arg2);
 }
 
 void hh_register_sort(struct hh_register_s *reg)
@@ -67,6 +69,7 @@ hh_status_t hh_register_add(struct hh_register_s *reg, uint64_t id, void *data)
 	/* Can't have duplicate identifiers! */
 	if (hh_register_get(reg, id)) return HH_EL_IN_REG;
 
+	reg->element_no++;
 	void *rmem = realloc(reg->elements, reg->element_no * sizeof(struct hh_register_el_s));
 	if (!rmem) return HH_OUT_OF_MEMORY;
 
@@ -77,10 +80,7 @@ hh_status_t hh_register_add(struct hh_register_s *reg, uint64_t id, void *data)
 		.data = data,
 		.identifier = id
 	};
-	reg->elements[reg->element_no] = temp_el;
-
-	/* Increment the element count now instead of earlier to avoid pointless subtraction */
-	reg->element_no++;
+	reg->elements[reg->element_no - 1] = temp_el;
 
 	/* The register is nolonger sorted, so we need to ensure that nobody thinks it is. */
 	reg->sorted = false;
