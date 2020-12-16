@@ -48,4 +48,6 @@ int main(void) {
 		printf("Initial register element deletion didn't work - I can still read it!\n");
 		return EXIT_FAILURE;
 	}
+
+	hh_register_destroy(&treg);
 }

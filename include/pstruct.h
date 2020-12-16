@@ -7,6 +7,8 @@
 #include <string.h>
 #include <stdarg.h>
 
+/* WARNING: PStructs are NOT threadsafe! */
+
 enum hh_pstruct_types_e {
 	HH_PSTYPE_PAD    = 'x', /* 1 B */
 	HH_PSTYPE_U8     = 'B', /* 1 B */

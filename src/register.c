@@ -116,6 +116,14 @@ hh_status_t hh_register_set(struct hh_register_s *reg, uint64_t id, void *data)
 	return HH_STATUS_OKAY;
 }
 
+hh_status_t hh_register_pyset(struct hh_register_s *reg, uint64_t id, void *data)
+{
+	hh_status_t nsstat = hh_register_set(reg, id, data);
+	if (nsstat == HH_EL_NOT_FOUND) return hh_register_add(reg, id, data);
+
+	return nsstat;
+}
+
 void hh_register_destroy(struct hh_register_s *reg)
 {
 	if (!reg->elements) return;

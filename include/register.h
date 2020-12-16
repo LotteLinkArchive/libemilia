@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include "gdefs.h"
 
+/* WARNING: Registers are NOT threadsafe! */
+
 struct hh_register_el_s {
 	uint64_t identifier;
 	void *data;
@@ -44,6 +46,9 @@ HH_EXTERN hh_status_t hh_register_del(struct hh_register_s *reg, uint64_t id);
 
 /* Set the pointer-to-value for an element in the register. */
 HH_EXTERN hh_status_t hh_register_set(struct hh_register_s *reg, uint64_t id, void *data);
+
+/* Python-style set. Will add a new element if the ID doesn't exist, will use set-only if ID does exist. */
+HH_EXTERN hh_status_t hh_register_pyset(struct hh_register_s *reg, uint64_t id, void *data);
 
 /* Destroy the whole register, freeing all the memory consumed by the element index. */
 HH_EXTERN void hh_register_destroy(struct hh_register_s *reg);
