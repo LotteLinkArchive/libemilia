@@ -30,12 +30,10 @@ int hh_i_bsr_reg(struct hh_register_el_s *o, int l, int r, uint64_t x)
 int hh_register_geti(struct hh_register_s *reg, uint64_t id)
 {
 	/* We can speed things up *a lot* under certain conditions, so we check for those conditions */
-	if ( reg->element_no < 1) return -1;
-	if (!reg->sorted        ) goto hh_register_geti_ls;
+	if (reg->element_no < 1) return -1;
+	if (reg->sorted)
+		return hh_i_bsr_reg(reg->elements, 0, reg->element_no - 1, id);
 	
-	int sort_finder = hh_i_bsr_reg(reg->elements, 0, reg->element_no - 1, id);
-	return sort_finder;
-hh_register_geti_ls:
 	/* If the register isn't sorted, we have to fall back to linear searching */
 	for (size_t i = 0; i < reg->element_no; i++)
 		if (reg->elements[i].identifier == id) return i;
