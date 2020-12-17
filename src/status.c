@@ -12,6 +12,7 @@ const char *hh_status_str(hh_status_t status_code)
 	case HH_DOUBLE_ALLOC:  return "Tried to allocate a region that has already been allocated before!";
 	case HH_EL_IN_REG:     return "Unable to add an element to the register with a duplicate identifier!";
 	case HH_EL_NOT_FOUND:  return "Element not found in register!";
+	case HH_INT_OVERFLOW:  return "Approaching or detected an integer overflow, cannot continue!";
 	default:               return "Unknown error - no defined string form!";
 	}
 }

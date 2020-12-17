@@ -1,4 +1,5 @@
 #include "../include/register.h"
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <xxhash.h>
@@ -68,6 +69,7 @@ hh_status_t hh_register_add(struct hh_register_s *reg, uint64_t id, void *data)
 {
 	/* Can't have duplicate identifiers! */
 	if (hh_register_get(reg, id)) return HH_EL_IN_REG;
+	if (reg->element_no >= INT32_MAX) return HH_INT_OVERFLOW;
 
 	void *rmem = realloc(reg->elements, (reg->element_no + 1) * sizeof(struct hh_register_el_s));
 	if (!rmem) return HH_OUT_OF_MEMORY;

@@ -11,7 +11,8 @@ enum hh_status_codes_e {
 	HH_OUT_OF_BOUNDS,
 	HH_DOUBLE_ALLOC,
 	HH_EL_IN_REG,
-	HH_EL_NOT_FOUND
+	HH_EL_NOT_FOUND,
+	HH_INT_OVERFLOW
 };
 
 typedef unsigned char hh_status_t;
