@@ -35,7 +35,7 @@
 #define __hh_dyn_ins(a, i, v)  ({__hh_dyn_init(a); __typeof__(v) __96tmp = (v);\
                                (hh_i_dyn_ins((void **)&(a), (i), &__96tmp));})
 
-/* ---------------- EVERYTHING BELOW THIS LINE IS PRIVATE ---------------- */
+/* ---------------- ---------------- EVERYTHING BELOW THIS LINE IS PRIVATE ---------------- ---------------- */
 
 /* Internal helper macros
  * a = array
