@@ -37,6 +37,7 @@ int hh_register_geti(struct hh_register_s *reg, uint64_t id)
 	/* If the register isn't sorted, we have to fall back to linear searching */
 	for (size_t i = 0; i < reg->element_no; i++)
 		if (reg->elements[i].identifier == id) return i;
+	if (reg->sorting) hh_register_sort(reg);
 
 	return -1;
 }
