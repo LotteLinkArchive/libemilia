@@ -15,8 +15,6 @@ struct hh_register_el_s {
 struct hh_register_s {
 	struct hh_register_el_s *elements;
 
-	unsigned int element_no;
-
 	bool sorted;
 	bool sorting;
 

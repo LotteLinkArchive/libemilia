@@ -1,4 +1,5 @@
 #include "../include/register.h"
+#include "../include/svec.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,8 +8,7 @@
 struct hh_register_s hh_mkregister(bool autosort)
 {
 	struct hh_register_s out = {
-		.elements = NULL,
-		.element_no = 0,
+		.elements = __hh_dyn_mk(struct hh_register_el_s),
 		.sorted = true,
 		.sorting = autosort
 	};
@@ -30,12 +30,12 @@ int hh_i_bsr_reg(struct hh_register_el_s *o, int n, uint64_t x) {
 int hh_register_geti(struct hh_register_s *reg, uint64_t id)
 {
 	/* We can speed things up *a lot* under certain conditions, so we check for those conditions */
-	if (reg->element_no < 1) return -1;
+	if (hh_register_els(reg) < 1) return -1;
 	if (reg->sorted)
-		return hh_i_bsr_reg(reg->elements, reg->element_no, id);
+		return hh_i_bsr_reg(reg->elements, hh_register_els(reg), id);
 	
 	/* If the register isn't sorted, we have to fall back to linear searching */
-	for (size_t i = 0; i < reg->element_no; i++)
+	for (size_t i = 0; i < hh_register_els(reg); i++)
 		if (reg->elements[i].identifier == id) return i;
 	if (reg->sorting) hh_register_sort(reg);
 
@@ -59,36 +59,37 @@ int hh_i_rs_cmpfunc(const void *a, const void *b)
 
 void hh_register_sort(struct hh_register_s *reg)
 {
-	if (reg->sorted || reg->element_no < 2) return;
+	if (reg->sorted || hh_register_els(reg) < 2) return;
 
-	qsort(reg->elements, reg->element_no, sizeof(struct hh_register_el_s), hh_i_rs_cmpfunc);
+	qsort(reg->elements, hh_register_els(reg), sizeof(struct hh_register_el_s), hh_i_rs_cmpfunc);
 
 	reg->sorted = true;
 }
 
 hh_status_t hh_register_add(struct hh_register_s *reg, uint64_t id, void *data)
 {
-	/* Can't have duplicate identifiers! */
-	if (hh_register_get(reg, id)) return HH_EL_IN_REG;
-	if (reg->element_no >= INT32_MAX) return HH_INT_OVERFLOW;
-
-	void *rmem = realloc(reg->elements, (reg->element_no + 1) * sizeof(struct hh_register_el_s));
-	if (!rmem) return HH_OUT_OF_MEMORY;
-
-	/* We've confirmed that the realloc was successful here, so it is nolonger possible to fail. */
-	reg->elements = rmem;
+	if (hh_register_els(reg) >= INT32_MAX) return HH_INT_OVERFLOW;
+	if (hh_register_get(reg, id)) return HH_EL_IN_REG; /* Can't have duplicate identifiers! */
 
 	struct hh_register_el_s temp_el = {
 		.data = data,
 		.identifier = id
 	};
-	reg->elements[reg->element_no] = temp_el;
-	reg->element_no++;
 
-	/* The register is nolonger sorted, so we need to ensure that nobody thinks it is. */
-	reg->sorted = false;
+	hh_status_t stat;
+	if(reg->sorting) {
+		size_t i;
+		for (i = 0; i < hh_register_els(reg); i++)
+			if (reg->elements[i].identifier > id) break;
+		
+		stat = __hh_dyn_ins(reg->elements, i, temp_el);
+	} else {
+		stat = __hh_dyn_push(reg->elements, temp_el);
+	}
 
-	if (reg->sorting) hh_register_sort(reg);
+	if (stat != HH_STATUS_OKAY) return stat;
+
+	reg->sorted = reg->sorting;
 
 	return HH_STATUS_OKAY;
 }
@@ -98,15 +99,18 @@ hh_status_t hh_register_del(struct hh_register_s *reg, uint64_t id)
 	int target = hh_register_geti(reg, id);
 	if (target < 0) return HH_EL_NOT_FOUND;
 	
-	reg->sorted = false;
-	HH_SWAP(reg->elements[reg->element_no - 1], reg->elements[target]);
-	reg->element_no--;
+	hh_status_t stat;
+	if(reg->sorting) {
+		stat = __hh_dyn_del(reg->elements, target);
+	} else {
+		HH_SWAP(reg->elements[target], reg->elements[__hh_dyn_last_idx(reg->elements)]);
 
-	void *rmem = realloc(reg->elements, reg->element_no * sizeof(struct hh_register_el_s));
-	if (!rmem) return HH_OUT_OF_MEMORY;
+		stat = __hh_dyn_shrkby(reg->elements, 1);
+	}
 
-	reg->elements = rmem;
-	if (reg->sorting) hh_register_sort(reg);
+	if (stat != HH_STATUS_OKAY) return stat;
+
+	reg->sorted = reg->sorting;
 
 	return HH_STATUS_OKAY;
 }
@@ -130,20 +134,17 @@ hh_status_t hh_register_pyset(struct hh_register_s *reg, uint64_t id, void *data
 
 void hh_register_destroy(struct hh_register_s *reg)
 {
-	if (!reg->elements) return;
-	free(reg->elements);
-	reg->elements = NULL;
-	reg->element_no = 0;
+	__hh_dyn_free(reg->elements);
 }
 
 unsigned int hh_register_els(struct hh_register_s *reg)
 {
-	return reg->element_no;
+	return __hh_dyn_count(reg->elements);
 }
 
 hh_status_t hh_register_getidx(struct hh_register_el_s *out, struct hh_register_s *reg, unsigned int idx)
 {
-	if (idx >= reg->element_no) return HH_OUT_OF_BOUNDS;
+	if (idx >= hh_register_els(reg)) return HH_OUT_OF_BOUNDS;
 
 	*out = reg->elements[idx];
 	return HH_STATUS_OKAY;

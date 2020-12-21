@@ -12,7 +12,7 @@ static char *tstr[4] = {
 };
 
 int main(void) {
-	struct hh_register_s treg = hh_mkregister(false);
+	struct hh_register_s treg = hh_mkregister(true);
 	hh_status_t sbuf;
 
 	if ((sbuf = hh_register_add(&treg, hh_register_strkey("foo"), testdata))) {
@@ -39,14 +39,14 @@ int main(void) {
 		return EXIT_FAILURE;
 	}
 
-	unsigned int rcb = treg.element_no;
+	unsigned int rcb = hh_register_els(&treg);
 
 	if ((sbuf = hh_register_del(&treg, hh_register_strkey("foo")))) {
 		printf("Failed to remove initial register element with code %u\n", sbuf);
 		return EXIT_FAILURE;
 	}
 
-	if (treg.element_no == rcb) {
+	if (hh_register_els(&treg) == rcb) {
 		printf("Failed to remove initial register element, decrement did not occur\n");
 		return EXIT_FAILURE;
 	}
