@@ -20,12 +20,15 @@
  * TYPE *mydynarray = __hh_dyn_mk(TYPE);
  */
 
+/* WARNING: ACTUAL NECROMANCY BELOW. AVOID HAVING YOUR SOUL CONSUMED BY THE VOID. */
+
 #define HH_DYN_BASIS NULL
 #define __hh_dyn(name, type)   type *name = HH_DYN_BASIS
 #define __hh_dyn_init(a)       (__hh_dyn_add((a), 0)) /* Must be type-aware */
 #define __hh_dyn_count(a)      (__hh_i_dyn_c(__hh_i_dyn_raw(a)))
 #define __hh_dyn_last_idx(a)   (__hh_dyn_count(a) > 0 ? __hh_dyn_count(a) - 1 : -1)
 #define __hh_dyn_free(a)       ((a) ? ({free(__hh_i_dyn_raw(a)); a = NULL;}),0 : 0)
+#define __hh_dyn_empty(a)      ({__hh_dyn_free(a); __hh_dyn_init(a);})
 #define __hh_dyn_set_els(a, n) (hh_i_dyn_set_els((void **)&(a), (n), __hh_i_dyn_sas(a)))
 #define __hh_dyn_add(a, n)     (__hh_dyn_set_els((a), __hh_dyn_count(a) + (n)))
 #define __hh_dyn_push(a, v)    ({hh_stat_t __99tmp = __hh_dyn_add((a), 1); (a)[__hh_dyn_last_idx(a)] = (v); __99tmp;})
@@ -34,6 +37,7 @@
                                (__97tmp != HH_STATUS_OKAY ? NULL : __98tmp);})
 #define __hh_dyn_ins(a, i, v)  ({__hh_dyn_init(a); __typeof__(v) __96tmp = (v);\
                                (hh_i_dyn_ins((void **)&(a), (i), &__96tmp));})
+#define __hh_dyn_del(a, i)     ({__hh_dyn_init(a); hh_i_dyn_del((void **)&(a), (i));})
 
 /* ---------------- ---------------- EVERYTHING BELOW THIS LINE IS PRIVATE ---------------- ---------------- */
 
@@ -53,3 +57,4 @@
 
 HH_EXTERN hh_status_t hh_i_dyn_set_els(void **a, size_t n, size_t e);
 HH_EXTERN hh_status_t hh_i_dyn_ins(void **a, size_t i, void *e);
+HH_EXTERN hh_status_t hh_i_dyn_del(void **a, size_t i);
