@@ -41,19 +41,11 @@
 
 /* ---------------- ---------------- EVERYTHING BELOW THIS LINE IS PRIVATE ---------------- ---------------- */
 
-/* Internal helper macros
- * a = array
- * r = raw array
- * c = element count
- * s = element size
- * y = array type (e.g void *)
- * t = total raw size
- */
-#define __hh_i_dyn_raw(a)    ((a) ? ((size_t *) (void *) (a)) - 2 : NULL)           /* RETURN: r */
-#define __hh_i_dyn_c(r)      ((r) ? (((size_t *)r)[0]) : 0)                         /* RETURN: c */
-#define __hh_i_dyn_s(r)      ((r) ? (((size_t *)r)[1]) : 0)                         /* RETURN: s */
-#define __hh_i_dyn_trs(c, s) ((sizeof(size_t) * 2) + ((c) * (s)))                   /* RETURN: t */
-#define __hh_i_dyn_sas(a)    ((a) ? __hh_i_dyn_s(__hh_i_dyn_raw(a)) : sizeof(*(a))) /* RETURN: s (TA!) */
+#define __hh_i_dyn_raw(a)    ((a) ? ((size_t *) (void *) (a)) - 2 : NULL)           /* RETURN: r (raw array) */
+#define __hh_i_dyn_c(r)      ((r) ? (((size_t *)r)[0]) : 0)                         /* RETURN: c (element count) */
+#define __hh_i_dyn_s(r)      ((r) ? (((size_t *)r)[1]) : 0)                         /* RETURN: s (element size) */
+#define __hh_i_dyn_trs(c, s) ((sizeof(size_t) * 2) + ((c) * (s)))                   /* RETURN: t (total raw size) */
+#define __hh_i_dyn_sas(a)    ((a) ? __hh_i_dyn_s(__hh_i_dyn_raw(a)) : sizeof(*(a))) /* RETURN: s (TA! element size) */
 
 HH_EXTERN hh_status_t hh_i_dyn_set_els(void **a, size_t n, size_t e);
 HH_EXTERN hh_status_t hh_i_dyn_ins(void **a, size_t i, void *e);
