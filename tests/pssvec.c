@@ -29,4 +29,8 @@ int main(void) {
 	testvec[3] = 25;
 
 	__hh_dyn_free(testvec);
+	if (testvec != NULL) {
+		printf("testvec did not become NULL after free!\n");
+		return EXIT_FAILURE;
+	}
 }
