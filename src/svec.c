@@ -16,15 +16,15 @@ hh_status_t hh_i_dyn_ins(void **a, size_t i, void *e)
 {
 	if (i > __hh_dyn_count(*a)) return HH_OUT_OF_BOUNDS;
 
-	char *aba = ((char *)*a);
-	hh_status_t stat = __hh_dyn_add(aba, 1);
+	hh_status_t stat = __hh_dyn_add(*a, 1);
 	if (stat != HH_STATUS_OKAY) return stat;
 
+	char *aba = ((char *)*a);
 	size_t els  = __hh_i_dyn_s(__hh_i_dyn_raw(*a));
 	char *dxsrc = aba + (i * els);
 	size_t rms  = ((__hh_dyn_count(*a) - 1) - i) * els;
 
-	memcpy(dxsrc + els, dxsrc, rms);
+	memmove(dxsrc + els, dxsrc, rms);
 	memcpy(dxsrc, e, els);
 
 	return HH_STATUS_OKAY;
@@ -38,7 +38,7 @@ hh_status_t hh_i_dyn_del(void **a, size_t i)
 	size_t els  = __hh_i_dyn_s(__hh_i_dyn_raw(*a));
 	char *dxsrc = aba + (i * els);
 	size_t rms  = (__hh_dyn_count(*a) - (i + 1)) * els;
-	memcpy(dxsrc, dxsrc + els, rms);
+	memmove(dxsrc, dxsrc + els, rms);
 	
 	return __hh_dyn_shrkby(*a, 1);
 }
