@@ -27,6 +27,11 @@ int main(void) {
 	}
 
 	testvec[3] = 25;
+	__hh_dyn_ins(testvec, 3, 26);
+	if (testvec[3] != 26) {
+		printf("testvac index 3 value was not 26! (%d)\n", testvec[3]);
+		return EXIT_FAILURE;
+	}
 
 	__hh_dyn_free(testvec);
 	if (testvec != NULL) {
