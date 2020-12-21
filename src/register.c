@@ -104,6 +104,7 @@ hh_status_t hh_register_del(struct hh_register_s *reg, uint64_t id)
 	void *rmem = realloc(reg->elements, reg->element_no * sizeof(struct hh_register_el_s));
 	if (!rmem) return HH_OUT_OF_MEMORY;
 
+	reg->elements = rmem;
 	if (reg->sorting) hh_register_sort(reg);
 
 	return HH_STATUS_OKAY;
