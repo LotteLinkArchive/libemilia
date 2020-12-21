@@ -15,33 +15,33 @@ int main(void) {
 	struct hh_register_s treg = hh_mkregister(true);
 	hh_status_t sbuf;
 
-	if ((sbuf = hh_register_add(&treg, hh_register_strkey("foo"), testdata))) {
+	if ((sbuf = hh_register_add(&treg, hh_register_strkey(&treg, "foo"), testdata))) {
 		printf("Failed to add initial register element with code %u\n", sbuf);
 		return EXIT_FAILURE;
 	}
 
 	for (int x = 0; x < 4; x++) {
-		if ((sbuf = hh_register_add(&treg, hh_register_strkey(tstr[x]), tstr[x]))) {
+		if ((sbuf = hh_register_add(&treg, hh_register_strkey(&treg, tstr[x]), tstr[x]))) {
 			printf("Failed to add dead weight register element %d with code %u\n", x, sbuf);
 			return EXIT_FAILURE;
 		}
 	}
 
-	if (hh_register_get(&treg,  hh_register_strkey("foo")) != testdata) {
+	if (hh_register_get(&treg,  hh_register_strkey(&treg, "foo")) != testdata) {
 		printf("Failed integrity check for testdata on an unsorted 5-element retrieval\n");
 		return EXIT_FAILURE;
 	}
 
 	hh_register_sort(&treg);
 
-	if (hh_register_get(&treg,  hh_register_strkey("foo")) != testdata) {
+	if (hh_register_get(&treg,  hh_register_strkey(&treg, "foo")) != testdata) {
 		printf("Failed integrity check for testdata on a sorted 5-element retrieval\n");
 		return EXIT_FAILURE;
 	}
 
 	unsigned int rcb = hh_register_els(&treg);
 
-	if ((sbuf = hh_register_del(&treg, hh_register_strkey("foo")))) {
+	if ((sbuf = hh_register_del(&treg, hh_register_strkey(&treg, "foo")))) {
 		printf("Failed to remove initial register element with code %u\n", sbuf);
 		return EXIT_FAILURE;
 	}
@@ -51,7 +51,7 @@ int main(void) {
 		return EXIT_FAILURE;
 	}
 
-	if (hh_register_get(&treg, hh_register_strkey("foo")) == testdata) {
+	if (hh_register_get(&treg, hh_register_strkey(&treg, "foo")) == testdata) {
 		printf("Initial register element deletion didn't work - I can still read it!\n");
 		return EXIT_FAILURE;
 	}

@@ -5,3 +5,4 @@
 #include "status.h"
 #include "gdefs.h"
 #include "svec.h"
+#include "cuckoo.h"

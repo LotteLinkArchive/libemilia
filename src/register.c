@@ -150,12 +150,12 @@ hh_status_t hh_register_getidx(struct hh_register_el_s *out, struct hh_register_
 	return HH_STATUS_OKAY;
 }
 
-uint64_t hh_register_key(const void *data, size_t bytes)
+uint64_t hh_register_key(struct hh_register_s *reg, const void *data, size_t bytes)
 {
-	return XXH3_64bits(data, bytes);
+	return XXH3_64bits_withSeed(data, bytes, reg->identifier);
 }
 
-uint64_t hh_register_strkey(const char *key)
+uint64_t hh_register_strkey(struct hh_register_s *reg, const char *key)
 {
-	return hh_register_key(key, strlen(key) * sizeof(char));
+	return hh_register_key(reg, key, strlen(key) * sizeof(char));
 }

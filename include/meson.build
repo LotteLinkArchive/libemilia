@@ -4,6 +4,7 @@ hexhive_headers = [
 	'pstruct.h',
 	'register.h',
 	'hexhive.h',
-	'svec.h'
+	'svec.h',
+	'cuckoo.h'
 ]
 install_headers(hexhive_headers, subdir : 'hexhive')
