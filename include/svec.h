@@ -38,7 +38,7 @@
 #define __hh_dyn_ins(a, i, v)  ({__hh_dyn_init(a); __typeof__(v) __96tmp = (v);\
                                (hh_i_dyn_ins((void **)&(a), (i), &__96tmp));})
 #define __hh_dyn_del(a, i)     ({__hh_dyn_init(a); hh_i_dyn_del((void **)&(a), (i));})
-#define __hh_dyn_shrkby(a, n)  (__hh_dyn_add(a, -n))
+#define __hh_dyn_shrkby(a, n)  (__hh_dyn_add(a, -(n)))
 
 /* ---------------- ---------------- EVERYTHING BELOW THIS LINE IS PRIVATE ---------------- ---------------- */
 
