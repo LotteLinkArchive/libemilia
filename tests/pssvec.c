@@ -27,6 +27,7 @@ int main(void) {
 	}
 
 	testvec[3] = 25;
+	testvec[4] = 0;
 	__hh_dyn_ins(testvec, 3, 26);
 	if (testvec[3] != 26) {
 		printf("testvac index 3 value was not 26! (%d)\n", testvec[3]);
@@ -35,6 +36,11 @@ int main(void) {
 	__hh_dyn_del(testvec, 3);
 	if (testvec[3] != 25) {
 		printf("testvac index 3 value was not 25! (%d)\n", testvec[3]);
+		return EXIT_FAILURE;
+	}
+	__hh_dyn_del(testvec, 3);
+	if (testvec[3] == 25) {
+		printf("testvac index 3 value was still 25 after delete!\n");
 		return EXIT_FAILURE;
 	}
 
