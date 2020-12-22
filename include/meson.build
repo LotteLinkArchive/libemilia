@@ -6,6 +6,7 @@ hexhive_headers = [
 	'hexhive.h',
 	'svec.h',
 	'cuckoo.h',
-	'mt19937-64.h'
+	'mt19937-64.h',
+	'rotate.h'
 ]
 install_headers(hexhive_headers, subdir : 'hexhive')

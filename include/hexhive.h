@@ -7,3 +7,4 @@
 #include "svec.h"
 #include "cuckoo.h"
 #include "mt19937-64.h"
+#include "rotate.h"
