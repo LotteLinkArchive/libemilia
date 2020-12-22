@@ -12,7 +12,11 @@ static char *tstr[4] = {
 };
 
 int main(void) {
-	struct hh_register_s treg = hh_mkregister(true, NULL);
+	struct hh_register_s treg;
+	if (hh_mkregister(&treg, true, true, NULL) != HH_STATUS_OKAY) {
+		printf("Failed to initialize the register!\n");
+		return EXIT_FAILURE;
+	}
 	hh_status_t sbuf;
 
 	if ((sbuf = hh_register_add(&treg, hh_register_strkey(&treg, "foo"), testdata))) {

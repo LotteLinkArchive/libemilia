@@ -13,6 +13,8 @@ const char *hh_status_str(hh_status_t status_code)
 	case HH_EL_IN_REG:     return "Unable to add an element to the register with a duplicate identifier!";
 	case HH_EL_NOT_FOUND:  return "Element not found in register!";
 	case HH_INT_OVERFLOW:  return "Approaching or detected an integer overflow, cannot continue!";
+	case HH_CF_FAILURE:    return "Critical Cuckoo Filter failure! (May be memory-related?)";
+	case HH_INIT_FAILURE:  return "Failed to initialize an object. Likely a memory issue.";
 	default:               return "Unknown error - no defined string form!";
 	}
 }

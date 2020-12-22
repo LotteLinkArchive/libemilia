@@ -12,7 +12,9 @@ enum hh_status_codes_e {
 	HH_DOUBLE_ALLOC,
 	HH_EL_IN_REG,
 	HH_EL_NOT_FOUND,
-	HH_INT_OVERFLOW
+	HH_INT_OVERFLOW,
+	HH_CF_FAILURE,
+	HH_INIT_FAILURE
 };
 
 typedef unsigned char hh_status_t;

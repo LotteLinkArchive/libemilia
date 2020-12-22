@@ -6,7 +6,7 @@
 #include <string.h>
 #include <xxhash.h>
 
-struct hh_register_s hh_mkregister(bool autosort, hh_mt19937_ro_t *random)
+hh_status_t hh_mkregister(struct hh_register_s *target, bool autosort, bool cuckoo, hh_mt19937_ro_t *random)
 {
 	if (!random) random = &hh_mt19937_global;
 
@@ -16,10 +16,24 @@ struct hh_register_s hh_mkregister(bool autosort, hh_mt19937_ro_t *random)
 		.elements = __hh_dyn_mk(struct hh_register_el_s),
 		.sorted = true,
 		.sorting = autosort,
-		.identifier = hh_mt_genrand64_int64(random)
+		.identifier = hh_mt_genrand64_int64(random),
+		.en_cuckoo = cuckoo
 	};
 
-	return out;
+	HH_CUCKOO_FILTER_RETURN ccrt;
+	if (out.en_cuckoo)
+		ccrt = hh_cuckoo_filter_new(
+			&out.cuckoo, INT16_MAX, INT8_MAX, (uint32_t) (out.identifier & 0xffffffff));
+	else	ccrt = HH_CUCKOO_FILTER_OK;
+
+	if (ccrt != HH_CUCKOO_FILTER_OK || out.elements == NULL) {
+		hh_register_destroy(&out);
+		return HH_INIT_FAILURE;
+	}
+
+	*target = out;
+
+	return HH_STATUS_OKAY;
 }
 
 int hh_i_bsr_reg(struct hh_register_el_s *o, int n, uint64_t x) {
@@ -37,6 +51,8 @@ int hh_register_geti(struct hh_register_s *reg, uint64_t id)
 {
 	/* We can speed things up *a lot* under certain conditions, so we check for those conditions */
 	if (hh_register_els(reg) < 1) return -1;
+	if (reg->en_cuckoo)
+		if (HH_CUCKOO_FILTER_OK != hh_cuckoo_filter_contains(reg->cuckoo, &id, sizeof(id))) return -1;
 	if (reg->sorted)
 		return hh_i_bsr_reg(reg->elements, hh_register_els(reg), id);
 	
@@ -97,6 +113,9 @@ hh_status_t hh_register_add(struct hh_register_s *reg, uint64_t id, void *data)
 
 	reg->sorted = reg->sorting;
 
+	if (reg->en_cuckoo)
+		if (HH_CUCKOO_FILTER_OK != hh_cuckoo_filter_add(reg->cuckoo, &id, sizeof(id))) return HH_CF_FAILURE;
+
 	return HH_STATUS_OKAY;
 }
 
@@ -117,6 +136,9 @@ hh_status_t hh_register_del(struct hh_register_s *reg, uint64_t id)
 	if (stat != HH_STATUS_OKAY) return stat;
 
 	reg->sorted = reg->sorting;
+
+	if (reg->en_cuckoo)
+		if (HH_CUCKOO_FILTER_OK != hh_cuckoo_filter_remove(reg->cuckoo, &id, sizeof(id))) return HH_CF_FAILURE;
 
 	return HH_STATUS_OKAY;
 }
@@ -141,6 +163,10 @@ hh_status_t hh_register_pyset(struct hh_register_s *reg, uint64_t id, void *data
 void hh_register_destroy(struct hh_register_s *reg)
 {
 	__hh_dyn_free(reg->elements);
+	if (reg->cuckoo && reg->en_cuckoo) {
+		hh_cuckoo_filter_free(&reg->cuckoo);
+		reg->en_cuckoo = NULL;
+	}
 }
 
 unsigned int hh_register_els(struct hh_register_s *reg)

@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include "gdefs.h"
 #include "mt19937-64.h"
+#include "cuckoo.h"
 
 /* WARNING: Registers are NOT threadsafe! */
 
@@ -20,16 +21,23 @@ struct hh_register_s {
 	bool sorting;
 
 	uint64_t identifier;
+
+	hh_cuckoo_filter_t *cuckoo;
+	bool en_cuckoo;
 };
 
 /* Make a brand new register with 0 elements. Doesn't actually allocate anything. (Until you add an element)
- * Set `autosort` to true if you want the register to be sorted every time an element is inserted or removed
- * (see hh_register_sort).
+ * Set `autosort` to true if you want the register to be sorted every time an element is inserted or removed.
+ * This changes the amount of time it takes to insert or delete elements (they both become O(n) instead of O(1))
+ * but it shouldn't be super slow because most of the moving is done with memmove/memcpy.
  * 
  * NEW: random must be a seeded hh_mt19937_ro_t instance. Set it to NULL if you want the register to use the
  * global instance and auto-init it if needed.
+ *
+ * NEW: cuckoo enables/disables the cuckoo filter. It does have overhead, but for large registers it generally
+ * speeds things up. Try it!
  */
-struct hh_register_s hh_mkregister(bool autosort, hh_mt19937_ro_t *random);
+hh_status_t hh_mkregister(struct hh_register_s *target, bool autosort, bool cuckoo, hh_mt19937_ro_t *random);
 
 /* Get the index of an ID in the register. Returns -1 if it does not exist. */
 HH_EXTERN int hh_register_geti(struct hh_register_s *reg, uint64_t id);
