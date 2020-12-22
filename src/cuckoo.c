@@ -1,4 +1,5 @@
 #include "../include/cuckoo.h"
+#include "../include/mt19937-64.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -54,8 +55,8 @@ static inline size_t next_power_of_two(size_t x) {
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-static inline CUCKOO_FILTER_RETURN add_fingerprint_to_bucket(
-	cuckoo_filter_t      *filter,
+static inline HH_CUCKOO_FILTER_RETURN add_fingerprint_to_bucket(
+	hh_cuckoo_filter_t      *filter,
 	uint32_t              fp,
 	uint32_t              h)
 {
@@ -63,17 +64,17 @@ static inline CUCKOO_FILTER_RETURN add_fingerprint_to_bucket(
 		cuckoo_nest_t *nest = &filter->bucket[(h * filter->nests_per_bucket) + ii];
 		if (0 == nest->fingerprint) {
 			nest->fingerprint = fp;
-			return CUCKOO_FILTER_OK;
+			return HH_CUCKOO_FILTER_OK;
 		}
 	}
 
-	return CUCKOO_FILTER_FULL;
+	return HH_CUCKOO_FILTER_FULL;
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-static inline CUCKOO_FILTER_RETURN remove_fingerprint_from_bucket(
-	cuckoo_filter_t      *filter,
+static inline HH_CUCKOO_FILTER_RETURN remove_fingerprint_from_bucket(
+	hh_cuckoo_filter_t      *filter,
 	uint32_t              fp,
 	uint32_t              h)
 {
@@ -81,17 +82,17 @@ static inline CUCKOO_FILTER_RETURN remove_fingerprint_from_bucket(
 		cuckoo_nest_t *nest = &filter->bucket[(h * filter->nests_per_bucket) + ii];
 		if (fp == nest->fingerprint) {
 			nest->fingerprint = 0;
-			return CUCKOO_FILTER_OK;
+			return HH_CUCKOO_FILTER_OK;
 		}
 	}
 
-	return CUCKOO_FILTER_NOT_FOUND;
+	return HH_CUCKOO_FILTER_NOT_FOUND;
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-static inline CUCKOO_FILTER_RETURN cuckoo_filter_move(
-	cuckoo_filter_t      *filter,
+static inline HH_CUCKOO_FILTER_RETURN cuckoo_filter_move(
+	hh_cuckoo_filter_t      *filter,
 	uint32_t              fingerprint,
 	uint32_t              h1,
 	int                   depth)
@@ -99,12 +100,12 @@ static inline CUCKOO_FILTER_RETURN cuckoo_filter_move(
 	uint32_t h2 = ((h1 ^ hash(&fingerprint, sizeof(fingerprint), filter->bucket_count, 900, filter->seed))
 		% filter->bucket_count);
 	
-	if (CUCKOO_FILTER_OK == add_fingerprint_to_bucket(filter, fingerprint, h1)) return CUCKOO_FILTER_OK;
-	if (CUCKOO_FILTER_OK == add_fingerprint_to_bucket(filter, fingerprint, h2)) return CUCKOO_FILTER_OK;
-	if (filter->max_kick_attempts == depth)                                     return CUCKOO_FILTER_FULL;
+	if (HH_CUCKOO_FILTER_OK == add_fingerprint_to_bucket(filter, fingerprint, h1)) return HH_CUCKOO_FILTER_OK;
+	if (HH_CUCKOO_FILTER_OK == add_fingerprint_to_bucket(filter, fingerprint, h2)) return HH_CUCKOO_FILTER_OK;
+	if (filter->max_kick_attempts == depth)                                        return HH_CUCKOO_FILTER_FULL;
 	
-	size_t row = (0 == (rand() % 2) ? h1 : h2);
-	size_t col = (rand() % filter->nests_per_bucket);
+	size_t row = (0 == (hh_mt_genrand64_int64(&hh_mt19937_global) % 2) ? h1 : h2);
+	size_t col = (hh_mt_genrand64_int64(&hh_mt19937_global) % filter->nests_per_bucket);
 	size_t elem = filter->bucket[(row * filter->nests_per_bucket) + col].fingerprint;
 	filter->bucket[(row * filter->nests_per_bucket) + col].fingerprint = fingerprint;
 	
@@ -113,23 +114,25 @@ static inline CUCKOO_FILTER_RETURN cuckoo_filter_move(
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-CUCKOO_FILTER_RETURN cuckoo_filter_new(
-	cuckoo_filter_t     **filter,
+HH_CUCKOO_FILTER_RETURN cuckoo_filter_new(
+	hh_cuckoo_filter_t     **filter,
 	size_t                max_key_count,
 	size_t                max_kick_attempts,
 	uint32_t              seed)
 {
-	cuckoo_filter_t      *new_filter;
+	hh_cuckoo_filter_t      *new_filter;
+
+	hh_mt_init_basic(&hh_mt19937_global, true);
 
 	size_t bucket_count = next_power_of_two(max_key_count / CUCKOO_NESTS_PER_BUCKET);
 	if (0.96 < (double) max_key_count / bucket_count / CUCKOO_NESTS_PER_BUCKET) bucket_count <<= 1;
 
 	/* TODO: Should check for integer overflows here */
-	size_t allocation_in_bytes = (sizeof(cuckoo_filter_t)
+	size_t allocation_in_bytes = (sizeof(hh_cuckoo_filter_t)
 		+ (bucket_count * CUCKOO_NESTS_PER_BUCKET * sizeof(cuckoo_nest_t)));
 
 	new_filter = calloc(allocation_in_bytes, 1);
-	if (!new_filter) return CUCKOO_FILTER_ALLOCATION_FAILED;
+	if (!new_filter) return HH_CUCKOO_FILTER_ALLOCATION_FAILED;
 
 	new_filter->last_victim = NULL;
 	memset(&new_filter->victim, 0, sizeof(new_filter)->victim);
@@ -141,22 +144,22 @@ CUCKOO_FILTER_RETURN cuckoo_filter_new(
 
 	*filter = new_filter;
 
-	return CUCKOO_FILTER_OK;
+	return HH_CUCKOO_FILTER_OK;
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-CUCKOO_FILTER_RETURN cuckoo_filter_free(cuckoo_filter_t **filter) {
+HH_CUCKOO_FILTER_RETURN cuckoo_filter_free(hh_cuckoo_filter_t **filter) {
 	free(*filter);
 	*filter = NULL;
 
-	return CUCKOO_FILTER_OK;
+	return HH_CUCKOO_FILTER_OK;
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-static inline CUCKOO_FILTER_RETURN cuckoo_filter_lookup(
-	cuckoo_filter_t      *filter,
+static inline HH_CUCKOO_FILTER_RETURN cuckoo_filter_lookup(
+	hh_cuckoo_filter_t      *filter,
 	cuckoo_result_t      *result,
 	void                 *key,
 	size_t                key_length_in_bytes)
@@ -190,29 +193,29 @@ static inline CUCKOO_FILTER_RETURN cuckoo_filter_lookup(
 	result->item.h1 = h1;
 	result->item.h2 = h2;
 						
-	return ((true == result->was_found) ? CUCKOO_FILTER_OK : CUCKOO_FILTER_NOT_FOUND);
+	return ((true == result->was_found) ? HH_CUCKOO_FILTER_OK : HH_CUCKOO_FILTER_NOT_FOUND);
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-CUCKOO_FILTER_RETURN cuckoo_filter_add(
-	cuckoo_filter_t      *filter,
+HH_CUCKOO_FILTER_RETURN cuckoo_filter_add(
+	hh_cuckoo_filter_t   *filter,
 	void                 *key,
 	size_t                key_length_in_bytes)
 {
 	cuckoo_result_t   result;
 
 	cuckoo_filter_lookup(filter, &result, key, key_length_in_bytes);
-	if (true == result.was_found)    return CUCKOO_FILTER_OK;
-	if (NULL != filter->last_victim) return CUCKOO_FILTER_FULL;
+	if (true == result.was_found)    return HH_CUCKOO_FILTER_OK;
+	if (NULL != filter->last_victim) return HH_CUCKOO_FILTER_FULL;
 
 	return cuckoo_filter_move(filter, result.item.fingerprint, result.item.h1, 0);
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-CUCKOO_FILTER_RETURN cuckoo_filter_remove(
-	cuckoo_filter_t      *filter,
+HH_CUCKOO_FILTER_RETURN cuckoo_filter_remove(
+	hh_cuckoo_filter_t   *filter,
 	void                 *key,
 	size_t                key_length_in_bytes)
 {
@@ -220,23 +223,23 @@ CUCKOO_FILTER_RETURN cuckoo_filter_remove(
 	bool              was_deleted = false;
 
 	cuckoo_filter_lookup(filter, &result, key, key_length_in_bytes);
-	if (false == result.was_found) return CUCKOO_FILTER_NOT_FOUND;
+	if (false == result.was_found) return HH_CUCKOO_FILTER_NOT_FOUND;
 
-	if (CUCKOO_FILTER_OK == remove_fingerprint_from_bucket(
+	if (HH_CUCKOO_FILTER_OK == remove_fingerprint_from_bucket(
 		filter, result.item.fingerprint, result.item.h1)) {
 		was_deleted = true;
-	} else if (CUCKOO_FILTER_OK == remove_fingerprint_from_bucket(
+	} else if (HH_CUCKOO_FILTER_OK == remove_fingerprint_from_bucket(
 		filter, result.item.fingerprint, result.item.h2)) {
 		was_deleted = true;
 	}
 
-	return ((true == was_deleted) ? CUCKOO_FILTER_OK : CUCKOO_FILTER_NOT_FOUND);
+	return ((true == was_deleted) ? HH_CUCKOO_FILTER_OK : HH_CUCKOO_FILTER_NOT_FOUND);
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-CUCKOO_FILTER_RETURN cuckoo_filter_contains(
-	cuckoo_filter_t      *filter,
+HH_CUCKOO_FILTER_RETURN cuckoo_filter_contains(
+	hh_cuckoo_filter_t   *filter,
 	void                 *key,
 	size_t                key_length_in_bytes)
 {

@@ -12,7 +12,7 @@ static char *tstr[4] = {
 };
 
 int main(void) {
-	struct hh_register_s treg = hh_mkregister(true);
+	struct hh_register_s treg = hh_mkregister(true, NULL);
 	hh_status_t sbuf;
 
 	if ((sbuf = hh_register_add(&treg, hh_register_strkey(&treg, "foo"), testdata))) {

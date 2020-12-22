@@ -1,16 +1,22 @@
 #include "../include/register.h"
 #include "../include/svec.h"
+#include "../include/cuckoo.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <xxhash.h>
 
-struct hh_register_s hh_mkregister(bool autosort)
+struct hh_register_s hh_mkregister(bool autosort, hh_mt19937_ro_t *random)
 {
+	if (!random) random = &hh_mt19937_global;
+
+	hh_mt_init_basic(random, true);
+
 	struct hh_register_s out = {
 		.elements = __hh_dyn_mk(struct hh_register_el_s),
 		.sorted = true,
-		.sorting = autosort
+		.sorting = autosort,
+		.identifier = hh_mt_genrand64_int64(random)
 	};
 
 	return out;
