@@ -74,14 +74,16 @@ struct hh_psbuf_s hh_psmkbuf(struct hh_psformat_s *format, void *data)
 		.status = HH_STATUS_OKAY
 	};
 
-	output.fields = malloc(format->variables * sizeof(struct hh_psfield_s));
+	#define FISIZE format->variables * sizeof(struct hh_psfield_s)
+	#define MBSIZE format->data_length
+	output.fields = malloc(FISIZE);
 	if (!output.fields) goto hh_psmkbuf_oom;
-	memset(output.fields, 0, format->variables * sizeof(struct hh_psfield_s));
+	memset(output.fields, 0, FISIZE);
 
-	output.buffer = malloc(format->data_length);
+	output.buffer = malloc(MBSIZE);
 	if (!output.buffer) goto hh_psmkbuf_oom;
-	if (data) memcpy(output.buffer, data, format->data_length);
-	else memset(output.buffer, 0, format->data_length);
+	if (data) memcpy(output.buffer, data, MBSIZE);
+	else memset(output.buffer, 0, MBSIZE);
 	uint8_t *bdata = output.buffer;
 
 	const char *format_string = format->format_string;
@@ -109,6 +111,9 @@ hh_psmkbuf_exit:
 hh_psmkbuf_oom:
 	output.status = HH_OUT_OF_MEMORY;
 	goto hh_psmkbuf_exit;
+
+	#undef FISIZE
+	#undef MBSIZE
 }
 
 void hh_psupdbuf(struct hh_psbuf_s *buffer, void *data)
