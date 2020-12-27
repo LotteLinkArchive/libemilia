@@ -6,20 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Usage:
- * TYPE = any possible type (any struct, primitive, union, anything)
- * 
- * TYPE *mydynarray = HH_DYN_BASIS;
- * or
- * __hh_dyn(mydynarray, TYPE);
- *
- * Then:
- * __hh_dyn_init(mydnarray); <-- Check output of this for HH_STATUS_OKAY!
- * 
- * OR to replace all of the above you could just do:
- * TYPE *mydynarray = __hh_dyn_mk(TYPE);
- */
-
 /* WARNING: ACTUAL NAPHTHAMANCY BELOW. AVOID HAVING YOUR SOUL CONSUMED BY THE VOID. */
 
 #define HH_DYN_BASIS NULL
@@ -39,6 +25,21 @@
                                (hh_i_dyn_ins((void **)&(a), (i), &__96tmp));})
 #define __hh_dyn_del(a, i)     ({__hh_dyn_init((a)); hh_i_dyn_del((void **)&(a), (i));})
 #define __hh_dyn_shrkby(a, n)  (__hh_dyn_add((a), -(n)))
+
+#ifndef HH_DYN_NO_SHORTHAND
+#define da_make    __hh_dyn_mk
+#define da_free    __hh_dyn_free
+#define da_count   __hh_dyn_count
+#define da_lastidx __hh_dyn_last_idx
+#define da_last    __hh_dyn_last
+#define da_empty   __hh_dyn_empty
+#define da_grow    __hh_dyn_add
+#define da_shrink  __hh_dyn_shrkby
+#define da_push    __hh_dyn_push
+#define da_delete  __hh_dyn_del
+#define da_insert  __hh_dyn_ins
+#define da_setsize __hh_dyn_set_els
+#endif
 
 /* ---------------- ---------------- EVERYTHING BELOW THIS LINE IS PRIVATE ---------------- ---------------- */
 
