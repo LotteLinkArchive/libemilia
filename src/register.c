@@ -1,6 +1,7 @@
 #include "../include/register.h"
 #include "../include/svec.h"
 #include "../include/cuckoo.h"
+#include "../include/util.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -128,7 +129,7 @@ hh_status_t hh_register_del(struct hh_register_s *reg, uint64_t id)
 	if(reg->sorting) {
 		stat = __hh_dyn_del(reg->elements, target);
 	} else {
-		HH_SWAP(reg->elements[target], reg->elements[__hh_dyn_last_idx(reg->elements)]);
+		__hh_swap_s(reg->elements[target], reg->elements[__hh_dyn_last_idx(reg->elements)]);
 
 		stat = __hh_dyn_shrkby(reg->elements, 1);
 	}
