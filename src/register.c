@@ -14,11 +14,11 @@ hh_status_t hh_mkregister(struct hh_register_s *target, bool autosort, bool cuck
 	hh_mt_init_basic(random, true);
 
 	struct hh_register_s out = {
-		.elements = __hh_dyn_mk(struct hh_register_el_s),
-		.sorted = true,
-		.sorting = autosort,
+		.elements   = __hh_dyn_mk(struct hh_register_el_s),
+		.sorted     = true,
+		.sorting    = autosort,
 		.identifier = hh_mt_genrand64_int64(random),
-		.en_cuckoo = cuckoo
+		.en_cuckoo  = cuckoo
 	};
 
 	HH_CUCKOO_FILTER_RETURN ccrt;
