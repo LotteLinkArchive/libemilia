@@ -8,6 +8,21 @@
 
 /* WARNING: ACTUAL NAPHTHAMANCY BELOW. AVOID HAVING YOUR SOUL CONSUMED BY THE VOID. */
 
+#ifndef HH_DYN_NO_SHORTHAND          /* TIP: Define HH_DYN_NO_SHORTHAND to disable the simplified interface.         */
+#define da_make    __hh_dyn_mk       /* Create a dynamic array of the specified type                                 */
+#define da_free    __hh_dyn_free     /* Free a dynamic array, deallocating all of its memory includng the metadata   */
+#define da_count   __hh_dyn_count    /* Count the amount of elements in a dynamic array                              */
+#define da_lastidx __hh_dyn_last_idx /* Return the index of the last element in the dynamic array                    */
+#define da_last    __hh_dyn_last     /* Return the last element in the dynamic array with a default value if none.   */
+#define da_empty   __hh_dyn_empty    /* Empty the dynamic array. Deallocates and removes all elements, except meta.  */
+#define da_grow    __hh_dyn_add      /* Grow the dynamic array by a specified amount of elements.                    */
+#define da_shrink  __hh_dyn_shrkby   /* Shrink the dynamic array by the specified amount of elements.                */
+#define da_push    __hh_dyn_push     /* Push a new element onto the end of the dynamic array.                        */
+#define da_delete  __hh_dyn_del      /* Delete an element in the dynamic array by the given index.                   */
+#define da_insert  __hh_dyn_ins      /* Insert an element into the dynamic array at the given index.                 */
+#define da_setsize __hh_dyn_set_els  /* Set the amount of elements in the dynamic array.                             */
+#endif
+
 #define HH_DYN_BASIS NULL
 #define __hh_dyn(name, type)   type *name = HH_DYN_BASIS
 #define __hh_dyn_init(a)       (__hh_dyn_add((a), 0)) /* Must be type-aware */
@@ -27,28 +42,13 @@
 #define __hh_dyn_del(a, i)     ({__hh_dyn_init((a)); hh_i_dyn_del((void **)&(a), (i));})
 #define __hh_dyn_shrkby(a, n)  (__hh_dyn_add((a), -(n)))
 
-#ifndef HH_DYN_NO_SHORTHAND
-#define da_make    __hh_dyn_mk
-#define da_free    __hh_dyn_free
-#define da_count   __hh_dyn_count
-#define da_lastidx __hh_dyn_last_idx
-#define da_last    __hh_dyn_last
-#define da_empty   __hh_dyn_empty
-#define da_grow    __hh_dyn_add
-#define da_shrink  __hh_dyn_shrkby
-#define da_push    __hh_dyn_push
-#define da_delete  __hh_dyn_del
-#define da_insert  __hh_dyn_ins
-#define da_setsize __hh_dyn_set_els
-#endif
+/* ---------------- ---------------- !!! EVERYTHING BELOW THIS LINE IS PRIVATE !!! ---------------- ---------------- */
 
-/* ---------------- ---------------- EVERYTHING BELOW THIS LINE IS PRIVATE ---------------- ---------------- */
-
-#define __hh_i_dyn_raw(a)    ((a) ? ((size_t *) (void *) (a)) - 2 : NULL)           /* RETURN: r (raw array) */
-#define __hh_i_dyn_c(r)      ((r) ? (((size_t *)(r))[0]) : 0)                       /* RETURN: c (element count) */
-#define __hh_i_dyn_s(r)      ((r) ? (((size_t *)(r))[1]) : 0)                       /* RETURN: s (element size) */
-#define __hh_i_dyn_trs(c, s) ((sizeof(size_t) * 2) + ((c) * (s)))                   /* RETURN: t (total raw size) */
-#define __hh_i_dyn_sas(a)    ((a) ? __hh_i_dyn_s(__hh_i_dyn_raw(a)) : sizeof(*(a))) /* RETURN: s (TA! element size) */
+#define __hh_i_dyn_raw(a)    ((a) ? ((size_t *) (void *) (a)) - 2 : NULL)           /* RETURN: r (raw array)         */
+#define __hh_i_dyn_c(r)      ((r) ? (((size_t *)(r))[0]) : 0)                       /* RETURN: c (element count)     */
+#define __hh_i_dyn_s(r)      ((r) ? (((size_t *)(r))[1]) : 0)                       /* RETURN: s (element size)      */
+#define __hh_i_dyn_trs(c, s) ((sizeof(size_t) * 2) + ((c) * (s)))                   /* RETURN: t (total raw size)    */
+#define __hh_i_dyn_sas(a)    ((a) ? __hh_i_dyn_s(__hh_i_dyn_raw(a)) : sizeof(*(a))) /* RETURN: s (TA! element size)  */
 
 HH_EXTERN hh_status_t hh_i_dyn_set_els(void **a, size_t n, size_t e);
 HH_EXTERN hh_status_t hh_i_dyn_ins(void **a, size_t i, void *e);
