@@ -94,15 +94,15 @@ struct hh_psbuf_s hh_psmkbuf(struct hh_psformat_s *format, void *data)
 
 		if (cproc.type == '\0') break;
 		if (!cproc.is_valid) continue;
-		if (!cproc.is_variable) goto hh_psmkbuf_mvnb;
+		if (cproc.is_variable) {
+			output.fields[field_index].type = cproc.type;
+			output.fields[field_index].bytes = cproc.bytes;
+			
+			output.fields[field_index].data = bdata;
 
-		output.fields[field_index].type = cproc.type;
-		output.fields[field_index].bytes = cproc.bytes;
-		
-		output.fields[field_index].data = bdata;
+			field_index++;
+		}
 
-		field_index++;
-hh_psmkbuf_mvnb:
 		bdata = bdata + cproc.bytes;
 	}
 
