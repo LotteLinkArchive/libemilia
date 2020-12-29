@@ -231,7 +231,7 @@ hh_status_t hh_psfinal_isolate(struct hh_psfinal_s *final_ps)
 hh_status_t hh_psfin_isodestroy(struct hh_psfinal_s *final_ps)
 {
 	if (!final_ps->isolated) return HH_REMOTE_ALLOC;
-	if (!final_ps->data) return HH_DOUBLE_FREE;
+	if (!final_ps->data    ) return HH_DOUBLE_FREE;
 
 	free(final_ps->data);
 	final_ps->data = NULL;
