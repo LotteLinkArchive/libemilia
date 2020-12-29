@@ -21,13 +21,14 @@
 #define da_delete  __hh_dyn_del      /* Delete an element in the dynamic array by the given index.                   */
 #define da_insert  __hh_dyn_ins      /* Insert an element into the dynamic array at the given index.                 */
 #define da_setsize __hh_dyn_set_els  /* Set the amount of elements in the dynamic array.                             */
+#define da_lastptr __hh_dyn_last_ptr /* Get void pointer to the last element in the dynamic array, NULL if empty     */
 #endif
 
 #define HH_DYN_BASIS NULL
 #define __hh_dyn(name, type)   type *name = HH_DYN_BASIS
 #define __hh_dyn_init(a)       (__hh_dyn_add((a), 0)) /* Must be type-aware */
 #define __hh_dyn_count(a)      (__hh_i_dyn_c(__hh_i_dyn_raw((a))))
-#define __hh_dyn_last_idx(a)   (__hh_dyn_count((a)) > 0 ? __hh_dyn_count((a)) - 1 : -1)
+#define __hh_dyn_last_idx(a)   (__hh_dyn_count((a)) > 0 ? (__hh_dyn_count((a)) - 1) : -1)
 #define __hh_dyn_free(a)       ((a) ? ({free(__hh_i_dyn_raw((a))); (a) = NULL;}),0 : 0)
 #define __hh_dyn_empty(a)      ({__hh_dyn_free((a)); __hh_dyn_init((a));})
 #define __hh_dyn_set_els(a, n) (hh_i_dyn_set_els((void **)&(a), (n), __hh_i_dyn_sas((a))))
@@ -41,6 +42,8 @@
                                (hh_i_dyn_ins((void **)&(a), (i), &__96tmp));})
 #define __hh_dyn_del(a, i)     ({__hh_dyn_init((a)); hh_i_dyn_del((void **)&(a), (i));})
 #define __hh_dyn_shrkby(a, n)  (__hh_dyn_add((a), -(n)))
+#define __hh_dyn_last_ptr(a)   ((__hh_dyn_count((a)) > 0) ? ((void *)(&(((char (*)[__hh_i_dyn_s(__hh_i_dyn_raw(a))])a)\
+                               [__hh_dyn_last_idx(a)]))) : NULL)
 
 /* ---------------- ---------------- !!! EVERYTHING BELOW THIS LINE IS PRIVATE !!! ---------------- ---------------- */
 

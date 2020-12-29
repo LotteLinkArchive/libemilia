@@ -26,6 +26,11 @@ int main(void) {
 		return EXIT_FAILURE;
 	}
 
+	if (__hh_dyn_last_ptr(testvec) == NULL) {
+		printf("last_ptr returned NULL!\n");
+		return EXIT_FAILURE;
+	}
+
 	testvec[3] = 25;
 	testvec[4] = 0;
 	__hh_dyn_ins(testvec, 3, 26);
