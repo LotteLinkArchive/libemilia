@@ -30,7 +30,7 @@
 #define __hh_dyn_count(a)      (__hh_i_dyn_c(__hh_i_dyn_raw((a))))
 #define __hh_dyn_last_idx(a)   (__hh_dyn_count((a)) > 0 ? (__hh_dyn_count((a)) - 1) : -1)
 #define __hh_dyn_free(a)       ((a) ? ({free(__hh_i_dyn_raw((a))); (a) = NULL;}),0 : 0)
-#define __hh_dyn_empty(a)      ({__hh_dyn_free((a)); __hh_dyn_init((a));})
+#define __hh_dyn_empty(a)      (__hh_dyn_free((a)), __hh_dyn_init((a)))
 #define __hh_dyn_set_els(a, n) (hh_i_dyn_set_els((void **)&(a), (n), __hh_i_dyn_sas((a))))
 #define __hh_dyn_add(a, n)     (__hh_dyn_set_els((a), __hh_dyn_count((a)) + (n)))
 #define __hh_dyn_push(a, v)    ({hh_stat_t __99tmp = __hh_dyn_add((a), 1); if (__99tmp == HH_STATUS_OKAY)\
