@@ -20,7 +20,8 @@
 #define da_insert  __hh_dyn_ins      /* Insert an element into the dynamic array at the given index.                 */
 #define da_setsize __hh_dyn_set_els  /* Set the amount of elements in the dynamic array.                             */
 #define da_lastptr __hh_dyn_last_ptr /* Get void pointer to the last element in the dynamic array, NULL if empty     */
-#endif
+#endif                               /* WARN: da_make, da_last and da_push must retain the same type for the array. 
+                                        WARN: da_insert requires `v` to be the same width as `a`'s non-ptr type.     */
 
 /* ----------- ---------------- IF POSSIBLE, PLEASE USE THE SIMPLIFIED INTERFACE ABOVE! ---------------- ----------- */
 
