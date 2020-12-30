@@ -1,10 +1,11 @@
 #pragma once
 
+#include "cuckoo.h"
+#include "gdefs.h"
+#include "hashmap.h"
+#include "mt19937-64.h"
 #include "pstruct.h"
 #include "register.h"
 #include "status.h"
-#include "gdefs.h"
 #include "svec.h"
-#include "cuckoo.h"
-#include "mt19937-64.h"
 #include "util.h"

@@ -7,6 +7,7 @@ hexhive_headers = [
 	'svec.h',
 	'cuckoo.h',
 	'mt19937-64.h',
-	'util.h'
+	'util.h',
+	'hashmap.h'
 ]
 install_headers(hexhive_headers, subdir : 'hexhive')

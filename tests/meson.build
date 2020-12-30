@@ -10,3 +10,5 @@ t_psregister = executable('psregister', 'psregister.c', dependencies : [hexhive_
 test('test_psregister', t_psregister)
 t_pssvec = executable('pssvec', 'pssvec.c', dependencies : [hexhive_dep])
 test('test_pssvec', t_pssvec)
+t_hmap = executable('hmaptest', 'hmaptest.c', dependencies : [hexhive_dep])
+test('test_hmap', t_hmap)
