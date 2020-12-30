@@ -4,6 +4,7 @@
 #include "cuckoo.h"
 #include "gdefs.h"
 #include "mt19937-64.h"
+#include "status.h"
 
 struct hh_i_map_hdr_s {
         bool                autosort;
@@ -16,6 +17,7 @@ struct hh_i_map_hdr_s {
 
 /* Helper */
 #define __hh_i_mcast(m) ((struct hh_i_map_hdr_s *)(m))
+#define __hh_i_vcast(m) ((void **)&(m))
 
 /* Initialization */
 #define HH_I_MPHS sizeof(struct hh_i_map_hdr_s)
@@ -48,4 +50,6 @@ HH_EXTERN void hh_i_map_destroy(struct hh_i_map_hdr_s *m);
 #define __hh_map_geti(m, i)  (*(__hh_map_empte((m), (i))))
 
 /* Memory manipulation */
-#define __hh_map_cmems(m, s) (HH_I_MPHS + ((s) * (__hh_map_elmem((m)))))
+#define __hh_map_cmems(m, s)   (HH_I_MPHS + ((s) * (__hh_map_elmem((m)))))
+#define __hh_map_setsize(m, s) (hh_i_map_setsize(__hh_i_vcast((m)), (s)))
+HH_EXTERN hh_status_t hh_i_map_setsize(void **m, size_t s);

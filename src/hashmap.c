@@ -22,3 +22,13 @@ void hh_i_map_destroy(struct hh_i_map_hdr_s *m)
         if (m->cuckoo) hh_cuckoo_filter_free(&m->cuckoo);
         free(m);
 }
+
+hh_status_t hh_i_map_setsize(void **m, size_t s)
+{
+        *m = realloc(*m, __hh_map_cmems(*m, s));
+        if (!*m) return HH_OUT_OF_MEMORY;
+
+        __hh_i_mcast(*m)->elements = s;
+
+        return HH_STATUS_OKAY;
+}
