@@ -30,7 +30,7 @@ DerivePointerAlignment: 'false'
 IncludeBlocks: Regroup
 IndentCaseLabels: 'false'
 IndentPPDirectives: None
-IndentWidth: '8'
+IndentWidth: '3'
 IndentWrappedFunctionNames: 'false'
 KeepEmptyLinesAtTheStartOfBlocks: 'false'
 Language: Cpp
@@ -44,6 +44,7 @@ SpaceBeforeParens: ControlStatements
 SpaceInEmptyParentheses: 'false'
 SpacesInCStyleCastParentheses: 'false'
 SpacesInParentheses: 'false'
-TabWidth: '8'
+TabWidth: '3'
+UseTab: Never
 
 ...

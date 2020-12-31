@@ -11,87 +11,87 @@
 /* WARNING: PStructs are NOT threadsafe! */
 
 enum hh_pstruct_types_e {
-        HH_PSTYPE_PAD  = 'x', /* 1 B */
-        HH_PSTYPE_U8   = 'B', /* 1 B */
-        HH_PSTYPE_I8   = 'b', /* 1 B */
-        HH_PSTYPE_BOOL = '?', /* 1 B */
+   HH_PSTYPE_PAD  = 'x', /* 1 B */
+   HH_PSTYPE_U8   = 'B', /* 1 B */
+   HH_PSTYPE_I8   = 'b', /* 1 B */
+   HH_PSTYPE_BOOL = '?', /* 1 B */
 
-        HH_PSTYPE_U16 = 'H', /* 2 B */
-        HH_PSTYPE_I16 = 'h', /* 2 B */
+   HH_PSTYPE_U16 = 'H', /* 2 B */
+   HH_PSTYPE_I16 = 'h', /* 2 B */
 
-        HH_PSTYPE_U32 = 'I', /* 4 B */
-        HH_PSTYPE_I32 = 'i', /* 4 B */
+   HH_PSTYPE_U32 = 'I', /* 4 B */
+   HH_PSTYPE_I32 = 'i', /* 4 B */
 
-        HH_PSTYPE_U64 = 'Q', /* 8 B */
-        HH_PSTYPE_I64 = 'q', /* 8 B */
+   HH_PSTYPE_U64 = 'Q', /* 8 B */
+   HH_PSTYPE_I64 = 'q', /* 8 B */
 
-        HH_PSTYPE_FLOAT  = 'f', /* 4 B */
-        HH_PSTYPE_DOUBLE = 'd'  /* 8 B */
+   HH_PSTYPE_FLOAT  = 'f', /* 4 B */
+   HH_PSTYPE_DOUBLE = 'd'  /* 8 B */
 };
 
 /* Union of all of the available primitive types */
 union hh_pstypebuf_u {
-        uint8_t  uint8;
-        int8_t   int8;
-        bool     bool8;
-        uint16_t uint16;
-        int16_t  int16;
-        uint32_t uint32;
-        int32_t  int32;
-        uint64_t uint64;
-        int64_t  int64;
-        float    float32;
-        double   double64;
+   uint8_t  uint8;
+   int8_t   int8;
+   bool     bool8;
+   uint16_t uint16;
+   int16_t  int16;
+   uint32_t uint32;
+   int32_t  int32;
+   uint64_t uint64;
+   int64_t  int64;
+   float    float32;
+   double   double64;
 };
 
 /* Representation of a pstruct field */
 struct hh_psfield_s {
-        char type;
+   char type;
 
-        size_t bytes;
+   size_t bytes;
 
-        void *data;
+   void *data;
 };
 
 /* Representation of a pstruct */
 struct hh_psformat_s {
-        /* The original format string, e.g "BbBbxxxxIIII" */
-        const char *format_string;
+   /* The original format string, e.g "BbBbxxxxIIII" */
+   const char *format_string;
 
-        /* Amount of characters in the format string */
-        size_t format_str_chars;
+   /* Amount of characters in the format string */
+   size_t format_str_chars;
 
-        /* The amount of space required to store the output produced by the format string, e.g 24 bytes */
-        size_t data_length;
+   /* The amount of space required to store the output produced by the format string, e.g 24 bytes */
+   size_t data_length;
 
-        /* The amount of user-configurable variables in the format string, e.g 8 (using above example) */
-        unsigned int variables;
+   /* The amount of user-configurable variables in the format string, e.g 8 (using above example) */
+   unsigned int variables;
 
-        /* Will be a non-zero value if creation of the pstruct failed. */
-        hh_status_t status;
+   /* Will be a non-zero value if creation of the pstruct failed. */
+   hh_status_t status;
 };
 
 /* Modifiable pstruct buffer */
 struct hh_psbuf_s {
-        /* The actual data */
-        struct hh_psfield_s *fields;
-        uint8_t *            buffer;
+   /* The actual data */
+   struct hh_psfield_s *fields;
+   uint8_t *            buffer;
 
-        /* The encoding/decoding format */
-        struct hh_psformat_s *format;
+   /* The encoding/decoding format */
+   struct hh_psformat_s *format;
 
-        /* The status code. Will be non-zero if failed to create the buffer object */
-        hh_status_t status;
+   /* The status code. Will be non-zero if failed to create the buffer object */
+   hh_status_t status;
 };
 
 /* A finalized pstruct (Data pointer points to the data in a buffer - do NOT free a buffer until done with this) */
 struct hh_psfinal_s {
-        uint8_t *data;
+   uint8_t *data;
 
-        size_t data_length;
+   size_t data_length;
 
-        /* Whether or not this struct has its own related malloc */
-        bool isolated;
+   /* Whether or not this struct has its own related malloc */
+   bool isolated;
 };
 
 /* Use this to make a Portable/Primitive Struct Format.
@@ -131,30 +131,30 @@ HH_EXTERN union hh_pstypebuf_u hh_psfield_get(struct hh_psbuf_s *buffer, unsigne
  * you'll only need eset/eget. You should try to use these as much as possible, they're easier
  * to follow.
  */
-#define hh_psfield_eset(buffer, index, value)                    \
-        do {                                                     \
-                __typeof__(value) _ESVTEMP = (value);            \
-                union hh_pstypebuf_u _ESVUTEMP;                  \
-                memcpy(&_ESVUTEMP, &_ESVTEMP, sizeof(_ESVTEMP)); \
-                hh_psfield_set(buffer, index, _ESVUTEMP);        \
-        } while (0)
+#define hh_psfield_eset(buffer, index, value)          \
+   do {                                                \
+      __typeof__(value) _ESVTEMP = (value);            \
+      union hh_pstypebuf_u _ESVUTEMP;                  \
+      memcpy(&_ESVUTEMP, &_ESVTEMP, sizeof(_ESVTEMP)); \
+      hh_psfield_set(buffer, index, _ESVUTEMP);        \
+   } while (0)
 
-#define hh_psfield_eget(buffer, index, type)                                    \
-        ({                                                                      \
-                type                 _ESVTEMP;                                  \
-                union hh_pstypebuf_u _ESVUTEMP = hh_psfield_get(buffer, index); \
-                memcpy(&_ESVTEMP, &_ESVUTEMP, sizeof(type));                    \
-                _ESVTEMP;                                                       \
-        })
+#define hh_psfield_eget(buffer, index, type)                          \
+   ({                                                                 \
+      type                 _ESVTEMP;                                  \
+      union hh_pstypebuf_u _ESVUTEMP = hh_psfield_get(buffer, index); \
+      memcpy(&_ESVTEMP, &_ESVUTEMP, sizeof(type));                    \
+      _ESVTEMP;                                                       \
+   })
 
 /* This abstraction macro is specifically intended for filling an external variable.
  * You'll rarely have to use this, in most cases `eget` will do.
  */
-#define hh_psfield_evget(buffer, index, variable)                               \
-        do {                                                                    \
-                union hh_pstypebuf_u _ESVUTEMP = hh_psfield_get(buffer, index); \
-                memcpy(&variable, &_ESVUTEMP, sizeof(variable));                \
-        } while (0)
+#define hh_psfield_evget(buffer, index, variable)                     \
+   do {                                                               \
+      union hh_pstypebuf_u _ESVUTEMP = hh_psfield_get(buffer, index); \
+      memcpy(&variable, &_ESVUTEMP, sizeof(variable));                \
+   } while (0)
 
 /* Packing functions similar to Python's struct.pack. All of the provided arguments must be
  * exactly the right type and there must be exactly the right amount of them (see

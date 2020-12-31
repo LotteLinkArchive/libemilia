@@ -11,20 +11,20 @@
 /* WARNING: Registers are NOT threadsafe! */
 
 struct hh_register_el_s {
-        uint64_t identifier;
-        void *   data;
+   uint64_t identifier;
+   void *   data;
 };
 
 struct hh_register_s {
-        struct hh_register_el_s *elements;
+   struct hh_register_el_s *elements;
 
-        bool sorted;
-        bool sorting;
+   bool sorted;
+   bool sorting;
 
-        uint64_t identifier;
+   uint64_t identifier;
 
-        hh_cuckoo_filter_t *cuckoo;
-        bool                en_cuckoo;
+   hh_cuckoo_filter_t *cuckoo;
+   bool                en_cuckoo;
 };
 
 /* Make a brand new register with 0 elements. Doesn't actually allocate anything. (Until you add an element)

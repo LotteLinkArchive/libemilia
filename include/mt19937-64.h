@@ -8,9 +8,9 @@
 #define HH_MT19937_NN 312
 
 struct hh_mt19937_ro {
-        uint64_t mt[HH_MT19937_NN];
-        int      mti;
-        bool     init;
+   uint64_t mt[HH_MT19937_NN];
+   int      mti;
+   bool     init;
 };
 
 typedef struct hh_mt19937_ro hh_mt19937_ro_t;

@@ -3,10 +3,10 @@
 #include <stdint.h>
 
 typedef enum {
-        HH_CUCKOO_FILTER_OK = 0,
-        HH_CUCKOO_FILTER_NOT_FOUND,
-        HH_CUCKOO_FILTER_FULL,
-        HH_CUCKOO_FILTER_ALLOCATION_FAILED,
+   HH_CUCKOO_FILTER_OK = 0,
+   HH_CUCKOO_FILTER_NOT_FOUND,
+   HH_CUCKOO_FILTER_FULL,
+   HH_CUCKOO_FILTER_ALLOCATION_FAILED,
 } HH_CUCKOO_FILTER_RETURN;
 
 typedef struct cuckoo_filter_t hh_cuckoo_filter_t;
