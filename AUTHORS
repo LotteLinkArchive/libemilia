@@ -2,7 +2,6 @@ HexHive makes use of code produced by external authors, as well as various contr
 Everyone is credited below.
 
 Copyright (c) 2020, Naphtha Nepanthez (pseudonym) (https://git.lotte.link/naphtha/hexhive)
-Copyright (c) 2004, Makoto Matsumoto (http://www.math.sci.hiroshima-u.ac.jp/m-mat/MT/emt64.html)
-Copyright (c) 2004, Takuji Nishimura (http://www.math.sci.hiroshima-u.ac.jp/m-mat/MT/emt64.html)
+Copyright (c) 2004, Makoto Matsumoto and Takuji Nishimura (http://www.math.sci.hiroshima-u.ac.jp/m-mat/MT/emt64.html)
 Copyright (c) 2015, Jonah H. Harris (https://github.com/jonahharris/libcuckoofilter)
 Copyright (c) 1997, Sean Anderson, Pete Hart and William Lewis (https://graphics.stanford.edu/~seander/bithacks.html)
