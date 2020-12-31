@@ -1,5 +1,7 @@
 #pragma once
+#include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "cuckoo.h"
 #include "gdefs.h"
@@ -30,22 +32,20 @@ struct hh_i_map_hdr_s {
       __95tmp;                                                                                   \
    })
 #define __hh_map_destroy(m) (hh_i_map_destroy(__hh_i_mcast((m))))
-HH_EXTERN void hh_i_map_init(struct hh_i_map_hdr_s *m, size_t es, bool autosort, bool cuckoo);
-HH_EXTERN void hh_i_map_destroy(struct hh_i_map_hdr_s *m);
 
 /* Statistics */
 #define __hh_map_count(m)  ((m) ? ((__hh_i_mcast((m)))->elements) : 0)
 #define __hh_map_sorted(m) ((m) ? ((__hh_i_mcast((m)))->sorted) : false)
 #define __hh_map_cuckoo(m) ((m) ? (!!((__hh_i_mcast((m)))->cuckoo)) : false)
 
-/* Internal Statistics */
+/* Internal statistics */
 #define __hh_map_el_size(m)  ((m) ? ((__hh_i_mcast((m)))->el_size) : 0)
 #define __hh_map_autosort(m) ((m) ? ((__hh_i_mcast((m)))->autosort) : false)
 #define __hh_map_seed(m)     ((m) ? ((__hh_i_mcast((m)))->seed) : 0)
 #define __hh_map_elmem(m)    ((m) ? (__hh_map_el_size((m)) + HH_I_IDS) : 0)
 
 /* Element manipulation */
-#define __hh_map_ixtpr(m, i) ((void *)(((i) < __hh_map_count((m))) ? (((char *)(m)) + __hh_map_cmems((m), (i))) : NULL))
+#define __hh_map_ixtpr(m, i) ((void *)(((i) < __hh_map_count((m))) ? (__hh_map_eregi((m), (i))) : NULL))
 #define __hh_map_empti(m, i) ((HH_I_HTYP *)(__hh_map_ixtpr((m), (i))))
 #define __hh_map_getip(m, i)                                                   \
    ({                                                                          \
@@ -55,5 +55,15 @@ HH_EXTERN void hh_i_map_destroy(struct hh_i_map_hdr_s *m);
 
 /* Memory manipulation */
 #define __hh_map_cmems(m, s)   (HH_I_MPHS + ((s) * (__hh_map_elmem((m)))))
+#define __hh_map_eregi(m, i)   (((char *)(m)) + __hh_map_cmems((m), (i)))
+#define __hh_map_elstr(m)      (__hh_map_eregi((m), 0))
 #define __hh_map_setsize(m, s) (hh_i_map_setsize(__hh_i_vcast((m)), (s)))
+#define __hh_map_sort(m)       (hh_i_map_sort(__hh_i_vcast((m))))
+#define __hh_map_getidx(m, id) (hh_i_map_gfind(__hh_i_vcast((m)), (id)))
+
+/* Internal functions */
+HH_EXTERN void        hh_i_map_init(struct hh_i_map_hdr_s *m, size_t es, bool autosort, bool cuckoo);
+HH_EXTERN void        hh_i_map_destroy(struct hh_i_map_hdr_s *m);
 HH_EXTERN hh_status_t hh_i_map_setsize(void **m, size_t s);
+HH_EXTERN void        hh_i_map_sort(void **m);
+HH_EXTERN int         hh_i_map_gfind(void **m, uint64_t x);
