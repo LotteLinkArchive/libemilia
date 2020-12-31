@@ -66,6 +66,38 @@ int hh_i_map_gfind(void **m, uint64_t x)
    return -1;
 }
 
+hh_status_t hh_i_map_add(void **m, void *ar, uint64_t id)
+{
+   if (__hh_map_count(*m) >= INT32_MAX) return HH_INT_OVERFLOW;
+   if (__hh_map_in(*m, id)) return HH_EL_IN_REG; /* Can't have duplicate identifiers! */
+
+   hh_status_t als = __hh_map_setsize(*m, __hh_map_count(*m) + 1);
+   if (als != HH_STATUS_OKAY) return als;
+
+   unsigned int iidx;
+   if (__hh_map_autosort(*m)) {
+      for (iidx = 0; iidx < __hh_map_count(*m); iidx++)
+         if (*__hh_map_empti(*m, iidx) > id) break;
+
+      void *dest = __hh_map_empti(*m, iidx + 1);
+      void *src  = __hh_map_empti(*m, iidx);
+
+      if (dest && src) memmove(dest, src, __hh_map_cmems(*m, __hh_map_count(*m) - 1) - __hh_map_cmems(*m, iidx));
+   } else {
+      iidx = __hh_map_count(*m) - 1;
+   }
+
+   *__hh_map_empti(*m, iidx) = id;
+   memcpy(__hh_map_getip(*m, iidx), ar, __hh_map_el_size(*m));
+
+   __hh_i_mcast(*m)->sorted = __hh_map_autosort(*m);
+
+   if (__hh_map_cuckoo(*m))
+      if (HH_CUCKOO_FILTER_OK != hh_cuckoo_filter_add(__hh_i_mcast(*m)->cuckoo, &id, sizeof(id))) return HH_CF_FAILURE;
+
+   return HH_STATUS_OKAY;
+}
+
 /* STATICS */
 
 static int hh_i_map_bfind(void **m, int n, uint64_t x)

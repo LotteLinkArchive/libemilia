@@ -60,25 +60,30 @@ struct hh_i_map_hdr_s {
 #define __hh_map_setsize(m, s) (hh_i_map_setsize(__hh_i_vcast((m)), (s)))
 #define __hh_map_sort(m)       (hh_i_map_sort(__hh_i_vcast((m))))
 #define __hh_map_getidx(m, id) (hh_i_map_gfind(__hh_i_vcast((m)), (id)))
-#define __hh_map_in(m, id)     (!(__hh_map_getidx((m), (id)) == -1))
-#define __hh_map_get(m, id, s)                      \
-   ({                                               \
-      __typeof__((m)[0]) __93tmp;                   \
-      int __92tmp = __hh_map_getidx((m), (id));     \
-      if (__92tmp != -1) {                          \
-         __93tmp = *(__hh_map_getip((m), __92tmp)); \
-         if ((s)) *(s) = HH_STATUS_OKAY;            \
-      } else {                                      \
-         if ((s)) *(s) = HH_EL_NOT_FOUND;           \
-      }                                             \
-      __93tmp;                                      \
+#define __hh_map_in(m, id)     (__hh_map_getidx((m), (id)) != -1)
+#define __hh_map_get(m, id, s)                                 \
+   ({                                                          \
+      __typeof__((m)[0]) __93tmp = __93tmp;                    \
+      int __92tmp                = __hh_map_getidx((m), (id)); \
+      if (__92tmp != -1) {                                     \
+         __93tmp = *(__hh_map_getip((m), __92tmp));            \
+         if ((s)) *(hh_status_t *)(s) = HH_STATUS_OKAY;        \
+      } else {                                                 \
+         if ((s)) *(hh_status_t *)(s) = HH_EL_NOT_FOUND;       \
+      }                                                        \
+      __93tmp;                                                 \
    })
-#define __hh_map_gets(m, id, e)                                       \
-   ({                                                                 \
-      hh_status_t __90tmp;                                            \
-      __typeof__((m)[0]) __91tmp = __hh_map_get((m), (id), &__90tmp); \
-      if ((e) && (__90tmp == HH_STATUS_OKAY)) *(e) = __91tmp;         \
-      __90tmp;                                                        \
+#define __hh_map_gets(m, id, e)                                                     \
+   ({                                                                               \
+      hh_status_t __90tmp;                                                          \
+      __typeof__((m)[0]) __91tmp = __hh_map_get((m), (id), &__90tmp);               \
+      if ((e) && (__90tmp == HH_STATUS_OKAY)) *(__typeof__((m)[0]) *)(e) = __91tmp; \
+      __90tmp;                                                                      \
+   })
+#define __hh_map_add(m, id, v)                         \
+   ({                                                  \
+      __typeof__((m)[0]) __89tmp = (v);                \
+      hh_i_map_add(__hh_i_vcast((m)), &__89tmp, (id)); \
    })
 
 /* Internal functions */
@@ -87,3 +92,4 @@ HH_EXTERN void        hh_i_map_destroy(struct hh_i_map_hdr_s *m);
 HH_EXTERN hh_status_t hh_i_map_setsize(void **m, size_t s);
 HH_EXTERN void        hh_i_map_sort(void **m);
 HH_EXTERN int         hh_i_map_gfind(void **m, uint64_t x);
+HH_EXTERN hh_status_t hh_i_map_add(void **m, void *ar, uint64_t id);
