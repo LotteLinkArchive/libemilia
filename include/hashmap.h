@@ -63,7 +63,7 @@ struct hh_i_map_hdr_s {
 #define __hh_map_in(m, id)     (!(__hh_map_getidx((m), (id)) == -1))
 #define __hh_map_get(m, id, s)                      \
    ({                                               \
-      __typeof__(m[0]) __93tmp;                     \
+      __typeof__((m)[0]) __93tmp;                   \
       int __92tmp = __hh_map_getidx((m), (id));     \
       if (__92tmp != -1) {                          \
          __93tmp = *(__hh_map_getip((m), __92tmp)); \
@@ -72,6 +72,13 @@ struct hh_i_map_hdr_s {
          if ((s)) *(s) = HH_EL_NOT_FOUND;           \
       }                                             \
       __93tmp;                                      \
+   })
+#define __hh_map_gets(m, id, e)                                       \
+   ({                                                                 \
+      hh_status_t __90tmp;                                            \
+      __typeof__((m)[0]) __91tmp = __hh_map_get((m), (id), &__90tmp); \
+      if ((e) && (__90tmp == HH_STATUS_OKAY)) *(e) = __91tmp;         \
+      __90tmp;                                                        \
    })
 
 /* Internal functions */
