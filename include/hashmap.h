@@ -60,6 +60,19 @@ struct hh_i_map_hdr_s {
 #define __hh_map_setsize(m, s) (hh_i_map_setsize(__hh_i_vcast((m)), (s)))
 #define __hh_map_sort(m)       (hh_i_map_sort(__hh_i_vcast((m))))
 #define __hh_map_getidx(m, id) (hh_i_map_gfind(__hh_i_vcast((m)), (id)))
+#define __hh_map_in(m, id)     (!(__hh_map_getidx((m), (id)) == -1))
+#define __hh_map_get(m, id, s)                      \
+   ({                                               \
+      __typeof__(m[0]) __93tmp;                     \
+      int __92tmp = __hh_map_getidx((m), (id));     \
+      if (__92tmp != -1) {                          \
+         __93tmp = *(__hh_map_getip((m), __92tmp)); \
+         if ((s)) *(s) = HH_STATUS_OKAY;            \
+      } else {                                      \
+         if ((s)) *(s) = HH_EL_NOT_FOUND;           \
+      }                                             \
+      __93tmp;                                      \
+   })
 
 /* Internal functions */
 HH_EXTERN void        hh_i_map_init(struct hh_i_map_hdr_s *m, size_t es, bool autosort, bool cuckoo);
