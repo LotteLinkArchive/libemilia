@@ -28,8 +28,8 @@ BreakStringLiterals: 'true'
 ColumnLimit: '120'
 DerivePointerAlignment: 'false'
 IncludeBlocks: Regroup
-IndentCaseLabels: 'false'
-IndentPPDirectives: None
+IndentCaseLabels: 'true'
+IndentPPDirectives: AfterHash
 IndentWidth: '3'
 IndentWrappedFunctionNames: 'false'
 KeepEmptyLinesAtTheStartOfBlocks: 'false'
