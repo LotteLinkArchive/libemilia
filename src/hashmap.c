@@ -98,6 +98,39 @@ hh_status_t hh_i_map_add(void **m, void *ar, uint64_t id)
    return HH_STATUS_OKAY;
 }
 
+hh_status_t hh_i_map_del(void **m, uint64_t id)
+{
+   int target = __hh_map_getidx(*m, id);
+   if (target < 0) return HH_EL_NOT_FOUND;
+
+   void *target_ptr = __hh_map_empti(*m, target);
+   if (__hh_map_autosort(*m)) {
+      void *src = __hh_map_empti(*m, target + 1);
+
+      if (target_ptr && src)
+         memmove(target_ptr, src, __hh_map_cmems(*m, __hh_map_count(*m)) - __hh_map_cmems(*m, target + 1));
+   } else {
+      void *last_ptr = __hh_map_empti(*m, __hh_map_count(*m) - 1);
+
+      memcpy(last_ptr, target_ptr, __hh_map_elmem(*m));
+   }
+
+   hh_status_t als = __hh_map_setsize(*m, __hh_map_count(*m) - 1);
+   if (als != HH_STATUS_OKAY) return als;
+
+   return HH_STATUS_OKAY;
+}
+
+hh_status_t hh_i_map_set(void **m, void *ar, uint64_t id)
+{
+   int target = __hh_map_getidx(*m, id);
+   if (target < 0) return HH_EL_NOT_FOUND;
+
+   memcpy(__hh_map_getip(*m, target), ar, __hh_map_el_size(*m));
+
+   return HH_STATUS_OKAY;
+}
+
 /* STATICS */
 
 static int hh_i_map_bfind(void **m, int n, uint64_t x)

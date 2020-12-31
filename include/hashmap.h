@@ -60,12 +60,12 @@ struct hh_i_map_hdr_s {
 #define __hh_map_setsize(m, s) (hh_i_map_setsize(__hh_i_vcast((m)), (s)))
 #define __hh_map_sort(m)       (hh_i_map_sort(__hh_i_vcast((m))))
 #define __hh_map_getidx(m, id) (hh_i_map_gfind(__hh_i_vcast((m)), (id)))
-#define __hh_map_in(m, id)     (__hh_map_getidx((m), (id)) != -1)
+#define __hh_map_in(m, id)     (__hh_map_getidx((m), (id)) >= 0)
 #define __hh_map_get(m, id, s)                                 \
    ({                                                          \
       __typeof__((m)[0]) __93tmp = __93tmp;                    \
       int __92tmp                = __hh_map_getidx((m), (id)); \
-      if (__92tmp != -1) {                                     \
+      if (__92tmp >= 0) {                                      \
          __93tmp = *(__hh_map_getip((m), __92tmp));            \
          if ((s)) *(hh_status_t *)(s) = HH_STATUS_OKAY;        \
       } else {                                                 \
@@ -85,6 +85,18 @@ struct hh_i_map_hdr_s {
       __typeof__((m)[0]) __89tmp = (v);                \
       hh_i_map_add(__hh_i_vcast((m)), &__89tmp, (id)); \
    })
+#define __hh_map_del(m, id) (hh_i_map_del(__hh_i_vcast((m)), (id)))
+#define __hh_map_set(m, id, v)                         \
+   ({                                                  \
+      __typeof__((m)[0]) __88tmp = v;                  \
+      hh_i_map_set(__hh_i_vcast((m)), &__88tmp, (id)); \
+   })
+#define __hh_map_pyset(m, id, v)                                           \
+   ({                                                                      \
+      hh_status_t __87tmp = __hh_map_add((m), (id), (v));                  \
+      if (__87tmp == HH_EL_IN_REG) __87tmp = __hh_map_set((m), (id), (v)); \
+      __87tmp;                                                             \
+   })
 
 /* Internal functions */
 HH_EXTERN void        hh_i_map_init(struct hh_i_map_hdr_s *m, size_t es, bool autosort, bool cuckoo);
@@ -93,3 +105,5 @@ HH_EXTERN hh_status_t hh_i_map_setsize(void **m, size_t s);
 HH_EXTERN void        hh_i_map_sort(void **m);
 HH_EXTERN int         hh_i_map_gfind(void **m, uint64_t x);
 HH_EXTERN hh_status_t hh_i_map_add(void **m, void *ar, uint64_t id);
+HH_EXTERN hh_status_t hh_i_map_del(void **m, uint64_t id);
+HH_EXTERN hh_status_t hh_i_map_set(void **m, void *ar, uint64_t id);
