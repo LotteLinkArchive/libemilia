@@ -45,7 +45,7 @@ struct hh_i_map_hdr_s {
 #define __hh_map_elmem(m)    ((m) ? (__hh_map_el_size((m)) + HH_I_IDS) : 0)
 
 /* Element manipulation */
-#define __hh_map_ixtpr(m, i) ((void *)(((i) < __hh_map_count((m))) ? (__hh_map_eregi((m), (i))) : NULL))
+#define __hh_map_ixtpr(m, i) ((void *)((((i) < __hh_map_count((m))) && ((i) >= 0)) ? (__hh_map_eregi((m), (i))) : NULL))
 #define __hh_map_empti(m, i) ((HH_I_HTYP *)(__hh_map_ixtpr((m), (i))))
 #define __hh_map_getip(m, i)                                                   \
    ({                                                                          \
