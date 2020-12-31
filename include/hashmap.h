@@ -1,11 +1,11 @@
 #pragma once
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "cuckoo.h"
 #include "gdefs.h"
-#include "mt19937-64.h"
 #include "status.h"
 
 struct hh_i_map_hdr_s {
@@ -22,9 +22,9 @@ struct hh_i_map_hdr_s {
 #define __hh_i_vcast(m) ((void **)&(m))
 
 /* Initialization */
-#define HH_I_HTYP uint64_t
+typedef uint64_t hh_map_hash_t;
 #define HH_I_MPHS sizeof(struct hh_i_map_hdr_s)
-#define HH_I_IDS  sizeof(HH_I_HTYP)
+#define HH_I_IDS  sizeof(hh_map_hash_t)
 #define __hh_map_mk(type, autosort, cuckoo)                                                      \
    ({                                                                                            \
       type *__95tmp = malloc(HH_I_MPHS);                                                         \
@@ -46,11 +46,11 @@ struct hh_i_map_hdr_s {
 
 /* Element manipulation */
 #define __hh_map_ixtpr(m, i) ((void *)((((i) < __hh_map_count((m))) && ((i) >= 0)) ? (__hh_map_eregi((m), (i))) : NULL))
-#define __hh_map_empti(m, i) ((HH_I_HTYP *)(__hh_map_ixtpr((m), (i))))
+#define __hh_map_empti(m, i) ((hh_map_hash_t *)(__hh_map_ixtpr((m), (i))))
 #define __hh_map_getip(m, i)                                                   \
    ({                                                                          \
       __typeof__(m) __94tmp = ((__typeof__(m))(__hh_map_empti((m), (i)) + 1)); \
-      ((((void *)__94tmp) == ((uint64_t *)NULL + 1)) ? NULL : __94tmp);        \
+      ((((void *)__94tmp) == ((hh_map_hash_t *)NULL + 1)) ? NULL : __94tmp);   \
    })
 
 /* Memory manipulation */
@@ -97,13 +97,16 @@ struct hh_i_map_hdr_s {
       if (__87tmp == HH_EL_IN_REG) __87tmp = __hh_map_set((m), (id), (v)); \
       __87tmp;                                                             \
    })
+#define __hh_map_bh(m, r, s) (hh_i_map_uhash(__hh_i_vcast((m)), (r), (s)))
+#define __hh_map_sh(m, r) (hh_i_map_uhash(__hh_i_vcast((m)), (r), strlen((s))))
 
 /* Internal functions */
-HH_EXTERN void        hh_i_map_init(struct hh_i_map_hdr_s *m, size_t es, bool autosort, bool cuckoo);
-HH_EXTERN void        hh_i_map_destroy(struct hh_i_map_hdr_s *m);
-HH_EXTERN hh_status_t hh_i_map_setsize(void **m, size_t s);
-HH_EXTERN void        hh_i_map_sort(void **m);
-HH_EXTERN int         hh_i_map_gfind(void **m, uint64_t x);
-HH_EXTERN hh_status_t hh_i_map_add(void **m, void *ar, uint64_t id);
-HH_EXTERN hh_status_t hh_i_map_del(void **m, uint64_t id);
-HH_EXTERN hh_status_t hh_i_map_set(void **m, void *ar, uint64_t id);
+HH_EXTERN void          hh_i_map_init(struct hh_i_map_hdr_s *m, size_t es, bool autosort, bool cuckoo);
+HH_EXTERN void          hh_i_map_destroy(struct hh_i_map_hdr_s *m);
+HH_EXTERN hh_status_t   hh_i_map_setsize(void **m, size_t s);
+HH_EXTERN void          hh_i_map_sort(void **m);
+HH_EXTERN int           hh_i_map_gfind(void **m, hh_map_hash_t x);
+HH_EXTERN hh_status_t   hh_i_map_add(void **m, const void *ar, hh_map_hash_t id);
+HH_EXTERN hh_status_t   hh_i_map_del(void **m, hh_map_hash_t id);
+HH_EXTERN hh_status_t   hh_i_map_set(void **m, const void *ar, hh_map_hash_t id);
+HH_EXTERN hh_map_hash_t hh_i_map_uhash(void **m, const void *ar, size_t bytes);

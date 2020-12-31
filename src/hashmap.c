@@ -1,8 +1,12 @@
 #include "../include/hashmap.h"
 
+#include <xxhash.h>
+
+#include "../include/mt19937-64.h"
+
 /* STATIC DECLARATIONS */
 
-static int hh_i_map_bfind(void **m, int n, uint64_t x);
+static int hh_i_map_bfind(void **m, int n, hh_map_hash_t x);
 static int hh_i_map_scmpfunc(const void *a, const void *b);
 
 /* MAIN BODY */
@@ -48,7 +52,7 @@ void hh_i_map_sort(void **m)
    __hh_i_mcast(*m)->sorted = true;
 }
 
-int hh_i_map_gfind(void **m, uint64_t x)
+int hh_i_map_gfind(void **m, hh_map_hash_t x)
 {
    /* We can speed things up *a lot* under certain conditions, so we check for those conditions */
    if (__hh_map_count(*m) < 1) return -1;
@@ -66,7 +70,7 @@ int hh_i_map_gfind(void **m, uint64_t x)
    return -1;
 }
 
-hh_status_t hh_i_map_add(void **m, void *ar, uint64_t id)
+hh_status_t hh_i_map_add(void **m, const void *ar, hh_map_hash_t id)
 {
    if (__hh_map_count(*m) >= INT32_MAX) return HH_INT_OVERFLOW;
    if (__hh_map_in(*m, id)) return HH_EL_IN_REG; /* Can't have duplicate identifiers! */
@@ -98,7 +102,7 @@ hh_status_t hh_i_map_add(void **m, void *ar, uint64_t id)
    return HH_STATUS_OKAY;
 }
 
-hh_status_t hh_i_map_del(void **m, uint64_t id)
+hh_status_t hh_i_map_del(void **m, hh_map_hash_t id)
 {
    int target = __hh_map_getidx(*m, id);
    if (target < 0) return HH_EL_NOT_FOUND;
@@ -121,7 +125,7 @@ hh_status_t hh_i_map_del(void **m, uint64_t id)
    return HH_STATUS_OKAY;
 }
 
-hh_status_t hh_i_map_set(void **m, void *ar, uint64_t id)
+hh_status_t hh_i_map_set(void **m, const void *ar, hh_map_hash_t id)
 {
    int target = __hh_map_getidx(*m, id);
    if (target < 0) return HH_EL_NOT_FOUND;
@@ -131,9 +135,14 @@ hh_status_t hh_i_map_set(void **m, void *ar, uint64_t id)
    return HH_STATUS_OKAY;
 }
 
+hh_map_hash_t hh_i_map_uhash(void **m, const void *ar, size_t bytes)
+{
+   return (hh_map_hash_t)XXH3_64bits_withSeed(ar, bytes, (XXH64_hash_t)__hh_map_seed(*m));
+}
+
 /* STATICS */
 
-static int hh_i_map_bfind(void **m, int n, uint64_t x)
+static int hh_i_map_bfind(void **m, int n, hh_map_hash_t x)
 {
    int i = 0, j = n - 1;
    while (i <= j) {
@@ -149,8 +158,8 @@ static int hh_i_map_bfind(void **m, int n, uint64_t x)
 
 static int hh_i_map_scmpfunc(const void *a, const void *b)
 {
-   uint64_t arg1 = (*(uint64_t *)a);
-   uint64_t arg2 = (*(uint64_t *)b);
+   hh_map_hash_t arg1 = (*(hh_map_hash_t *)a);
+   hh_map_hash_t arg2 = (*(hh_map_hash_t *)b);
 
    return (arg1 > arg2) - (arg1 < arg2);
 }
