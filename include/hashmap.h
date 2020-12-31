@@ -8,6 +8,98 @@
 #include "gdefs.h"
 #include "status.h"
 
+/* --- Simplified interface ---
+ * The simplified hashmap interface contains a limited but powerful subset of the available hashmap macros. Their names
+ * have also been shortened for your convenience.
+ * ----------------------------
+ * TIP: Define HH_MAP_NO_SIMPLIFIED to remove these macros if they conflict with anything else in your code. Define
+ * just HH_MAP_NO_SIMPLE_HASHES if you only want to get rid of the hashing macros.
+ * ----------------------------
+ * hm_make - (type [type], autosort [bool], cuckoo [bool]) - returns: (hashmap [hashmap ptr])
+ *    Create a hashmap of the given type, and enable/disable auto-sorting and cuckoo tables.
+ *    (Usually, leave autosort and cuckoo set to `true`.)
+ *    
+ *    Example:
+ *       unsigned int *uihashmap = hm_make(unsigned int, true, true);
+ *    
+ *    Warning: If type is "unsigned int" then the type of uihashmap must always be "unsigned int." If the type changes
+ *    or you reference a hashmap with a different pointer, everything will break. Don't do that. Always use exactly the
+ *    same pointer with exactly the same matching, perfect type.
+ *
+ * hm_free - (hashmap [hashmap ptr]) - returns void
+ *    Free a hashmap. Frees all elements, all IDs and the header. Everything is gone.
+ *
+ * hm_count - (hashmap [hashmap ptr]) - returns (elements [size_t])
+ *    Return the amount of elements in the hashmap.
+ *
+ * hm_sorted - (hashmap [hashmap ptr]) - returns (sorted [bool])
+ *    Return a bool determining whether the hashmap is fully sorted or not.
+ *
+ * hm_cuckoo - (hashmap [hashmap ptr]) - returns (cuckoo [bool])
+ *    Return a bool determining whether the hashmap has a functional cuckoo table or not.
+ *
+ * hm_sort - (hashmap [hashmap ptr]) - returns void
+ *    Sort a hashmap. Uses qsort() behind the scenes. Improves the performance of future get()-related requests.
+ *
+ * hm_idtoidx - (hashmap [hashmap ptr], id [hh_map_hash_t]) - returns (index [unsigned int])
+ *    Return the index that represents the given ID in the hashmap. Returns -1 if not found.
+ *
+ * hm_idxtoid - (hashmap [hashmap ptr], index [unsigned int]) - returns (id [hh_map_hash_t])
+ *    Return the ID that represents the given index in the hashmap. SEGFAULTS IF OUT OF BOUNDS. Check with hm_count!
+ *
+ * hm_in - (hashmap [hashmap ptr], id [hh_map_hash_t]) - returns (in [bool])
+ *    Return true if ID is in the hashmap, false if not.
+ *
+ * hm_get - (hashmap [hashmap ptr], id [hh_map_hash_t], statptr [hh_status_t *]) - returns (hashmap_object [hopt])
+ *    Returns an object from the hashmap based on the given ID. Writes the get status to the variable pointed to by
+ *    statptr. If *statptr is not HH_STATUS_OKAY, then hashmap_object is uninitialized and potentially random garbage.
+ *    Set statptr to NULL if you do not want a status to be recorded (DANGEROUS!)
+ *
+ * hm_getstat - (hashmap [hashmap ptr], id [hh_map_hash_t], hashmap_objptr [hopt *]) - returns (stat [hh_status_t])
+ *    Ditto, but the roles of statptr and hashmap_object are reversed.
+ *
+ * hm_add - (hashmap [hashmap ptr], id [hh_map_hash_t], hashmap_object [hopt]) - returns (stat [hh_status_t])
+ *    Add an element to the hashmap for the given ID. Returns HH_STATUS_OKAY if everything was fine.
+ *    HH_INT_OVERFLOW - Too many elements (More than or equal to INT_MAX)
+ *    HH_EL_IN_REG - Element already in hashmap
+ *    HL_OUT_OF_MEMORY - Out of memory
+ *    HH_CF_FAILURE - Cuckoo filter failure
+ *
+ * hm_set - (hashmap [hashmap ptr], id [hh_map_hash_t], hashmap_object [hopt]) - returns (stat [hh_status_t])
+ *    Set the value of an element in the hashmap given by ID. Similar return values as above, but can return
+ *    HH_EL_NOT_FOUND if the ID wasn't found.
+ *
+ * hm_pyset - (hashmap [hashmap ptr], id [hh_map_hash_t], hashmap_object [hopt]) - returns (stat [hh_status_t])
+ *    A Pythonic mixture of hm_add and hm_set. If hm_add fails, hm_set is used instead. Just like Python.
+ *
+ * hm_bh - (hashmap [hashmap ptr], data [const void *], bytes [size_t]) - returns (id [hh_map_hash_t])
+ *    Generate an ID/hash (specific to this hashmap, unique for every hashmap) that represents a given key, which can
+ *    be any data given by the "data" pointer and of "bytes" size.
+ *
+ * hm_sh - (hashmap [hashmap ptr], data [const char *]) - returns (id [hh_map_hash_t])
+ *    Ditto, but hashes a NULL-TERMINATED string.
+ */
+#ifndef HH_MAP_NO_SIMPLIFIED
+#   define hm_make    __hh_map_mk
+#   define hm_free    __hh_map_destroy
+#   define hm_count   __hh_map_count
+#   define hm_sorted  __hh_map_sorted
+#   define hm_cuckoo  __hh_map_cuckoo
+#   define hm_sort    __hh_map_sort
+#   define hm_idtoidx __hh_map_getidx
+#   define hm_idxtoid __hh_map_getid
+#   define hm_in      __hh_map_in
+#   define hm_get     __hh_map_get
+#   define hm_getstat __hh_map_gets
+#   define hm_add     __hh_map_add
+#   define hm_set     __hh_map_set
+#   define hm_pyset   __hh_map_pyset
+#   ifndef HH_MAP_NO_SIMPLE_HASHES
+#      define hm_bh __hh_map_bh
+#      define hm_sh __hh_map_sh
+#   endif
+#endif
+
 struct hh_i_map_hdr_s {
    bool                autosort;
    bool                sorted;
@@ -97,8 +189,9 @@ typedef uint64_t hh_map_hash_t;
       if (__87tmp == HH_EL_IN_REG) __87tmp = __hh_map_set((m), (id), (v)); \
       __87tmp;                                                             \
    })
-#define __hh_map_bh(m, r, s) (hh_i_map_uhash(__hh_i_vcast((m)), (r), (s)))
-#define __hh_map_sh(m, r) (hh_i_map_uhash(__hh_i_vcast((m)), (r), strlen((s))))
+#define __hh_map_bh(m, r, s)   (hh_i_map_uhash(__hh_i_vcast((m)), (r), (s)))
+#define __hh_map_sh(m, r)      (hh_i_map_uhash(__hh_i_vcast((m)), (r), strlen((r))))
+#define __hh_map_getid(m, idx) (*__hh_map_empti((m), (idx)))
 
 /* Internal functions */
 HH_EXTERN void          hh_i_map_init(struct hh_i_map_hdr_s *m, size_t es, bool autosort, bool cuckoo);

@@ -73,6 +73,8 @@ int main(void)
       exit(EXIT_FAILURE);
    }
 
+	printf("ht: %d", (int)__hh_map_sh(hmt, "obama"));
+
    __hh_map_destroy(hmt);
 
    return !hmt;

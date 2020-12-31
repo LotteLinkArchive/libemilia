@@ -1,6 +1,7 @@
 #include "../include/hashmap.h"
 
 #include <xxhash.h>
+#include <limits.h>
 
 #include "../include/mt19937-64.h"
 
@@ -72,7 +73,7 @@ int hh_i_map_gfind(void **m, hh_map_hash_t x)
 
 hh_status_t hh_i_map_add(void **m, const void *ar, hh_map_hash_t id)
 {
-   if (__hh_map_count(*m) >= INT32_MAX) return HH_INT_OVERFLOW;
+   if (__hh_map_count(*m) >= INT_MAX) return HH_INT_OVERFLOW;
    if (__hh_map_in(*m, id)) return HH_EL_IN_REG; /* Can't have duplicate identifiers! */
 
    hh_status_t als = __hh_map_setsize(*m, __hh_map_count(*m) + 1);
@@ -121,6 +122,10 @@ hh_status_t hh_i_map_del(void **m, hh_map_hash_t id)
 
    hh_status_t als = __hh_map_setsize(*m, __hh_map_count(*m) - 1);
    if (als != HH_STATUS_OKAY) return als;
+
+   if (__hh_map_cuckoo(*m))
+      if (HH_CUCKOO_FILTER_OK != hh_cuckoo_filter_remove(__hh_i_mcast(*m)->cuckoo, &id, sizeof(id)))
+         return HH_CF_FAILURE;
 
    return HH_STATUS_OKAY;
 }
