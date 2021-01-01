@@ -43,8 +43,8 @@ int main(void)
       exit(EXIT_FAILURE);
    }
 
-	*__hh_map_getp(hmt, 7) = 5;
-	g7 = __hh_map_get(hmt, 7, NULL);
+   *__hh_map_getp(hmt, 7) = 5;
+   g7                     = __hh_map_get(hmt, 7, NULL);
    if (g7 != 5) {
       printf("fail: value of g7 was %d, not 5\n", g7);
       exit(EXIT_FAILURE);
@@ -81,7 +81,7 @@ int main(void)
       exit(EXIT_FAILURE);
    }
 
-	printf("ht: %d", (int)__hh_map_sh(hmt, "obama"));
+   printf("ht: %d", (int)__hh_map_sh(hmt, "obama"));
 
    __hh_map_destroy(hmt);
 

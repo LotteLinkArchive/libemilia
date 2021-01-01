@@ -1,7 +1,7 @@
 #include "../include/hashmap.h"
 
-#include <xxhash.h>
 #include <limits.h>
+#include <xxhash.h>
 
 #include "../include/mt19937-64.h"
 
