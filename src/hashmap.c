@@ -7,7 +7,7 @@
 
 /* STATIC DECLARATIONS */
 
-static int hh_i_map_bfind(void **m, int n, hh_map_hash_t x);
+static int hh_i_map_bfind(void *m, int n, hh_map_hash_t x);
 static int hh_i_map_scmpfunc(const void *a, const void *b);
 
 /* MAIN BODY */
@@ -44,29 +44,29 @@ hh_status_t hh_i_map_setsize(void **m, size_t s)
    return HH_STATUS_OKAY;
 }
 
-void hh_i_map_sort(void **m)
+void hh_i_map_sort(void *m)
 {
-   if (__hh_map_sorted(*m) || __hh_map_count(*m) < 2) return;
+   if (__hh_map_sorted(m) || __hh_map_count(m) < 2) return;
 
-   qsort(__hh_map_elstr(*m), __hh_map_count(*m), __hh_map_elmem(*m), hh_i_map_scmpfunc);
+   qsort(__hh_map_elstr(m), __hh_map_count(m), __hh_map_elmem(m), hh_i_map_scmpfunc);
 
-   __hh_i_mcast(*m)->sorted = true;
+   __hh_i_mcast(m)->sorted = true;
 }
 
-int hh_i_map_gfind(void **m, hh_map_hash_t x)
+int hh_i_map_gfind(void *m, hh_map_hash_t x)
 {
    /* We can speed things up *a lot* under certain conditions, so we check for those conditions */
-   if (__hh_map_count(*m) < 1) return -1;
-   if (__hh_map_cuckoo(*m))
-      if (HH_CUCKOO_FILTER_OK != hh_cuckoo_filter_contains(__hh_i_mcast(*m)->cuckoo, &x, sizeof(x))) return -1;
-   if (__hh_map_sorted(*m)) return hh_i_map_bfind(m, __hh_map_count(*m), x);
+   if (__hh_map_count(m) < 1) return -1;
+   if (__hh_map_cuckoo(m))
+      if (HH_CUCKOO_FILTER_OK != hh_cuckoo_filter_contains(__hh_i_mcast(m)->cuckoo, &x, sizeof(x))) return -1;
+   if (__hh_map_sorted(m)) return hh_i_map_bfind(m, __hh_map_count(m), x);
 
    /* If the register isn't sorted, we have to fall back to linear searching */
-   for (size_t i = 0; i < __hh_map_count(*m); i++)
-      if (*__hh_map_empti(*m, i) == x) return i;
+   for (size_t i = 0; i < __hh_map_count(m); i++)
+      if (*__hh_map_empti(m, i) == x) return i;
 
    /* And if we need the register to be auto-sorted, but it isn't sorted, then we'll have to sort it here. */
-   if (__hh_map_autosort(*m)) hh_i_map_sort(m);
+   if (__hh_map_autosort(m)) hh_i_map_sort(m);
 
    return -1;
 }
@@ -130,30 +130,30 @@ hh_status_t hh_i_map_del(void **m, hh_map_hash_t id)
    return HH_STATUS_OKAY;
 }
 
-hh_status_t hh_i_map_set(void **m, const void *ar, hh_map_hash_t id)
+hh_status_t hh_i_map_set(void *m, const void *ar, hh_map_hash_t id)
 {
-   int target = __hh_map_getidx(*m, id);
+   int target = __hh_map_getidx(m, id);
    if (target < 0) return HH_EL_NOT_FOUND;
 
-   memcpy(__hh_map_getip(*m, target), ar, __hh_map_el_size(*m));
+   memcpy(__hh_map_getip(m, target), ar, __hh_map_el_size(m));
 
    return HH_STATUS_OKAY;
 }
 
-hh_map_hash_t hh_i_map_uhash(void **m, const void *ar, size_t bytes)
+hh_map_hash_t hh_i_map_uhash(void *m, const void *ar, size_t bytes)
 {
-   return (hh_map_hash_t)XXH3_64bits_withSeed(ar, bytes, (XXH64_hash_t)__hh_map_seed(*m));
+   return (hh_map_hash_t)XXH3_64bits_withSeed(ar, bytes, (XXH64_hash_t)__hh_map_seed(m));
 }
 
 /* STATICS */
 
-static int hh_i_map_bfind(void **m, int n, hh_map_hash_t x)
+static int hh_i_map_bfind(void *m, int n, hh_map_hash_t x)
 {
    int i = 0, j = n - 1;
    while (i <= j) {
       int k = i + ((j - i) / 2);
-      if (*__hh_map_empti(*m, k) == x) return k;
-      else if (*__hh_map_empti(*m, k) < x)
+      if (*__hh_map_empti(m, k) == x) return k;
+      else if (*__hh_map_empti(m, k) < x)
          i = k + 1;
       else
          j = k - 1;

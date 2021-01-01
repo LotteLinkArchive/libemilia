@@ -156,8 +156,8 @@ typedef uint64_t hh_map_hash_t;
 #define __hh_map_eregi(m, i)   (((char *)(m)) + __hh_map_cmems((m), (i)))
 #define __hh_map_elstr(m)      (__hh_map_eregi((m), 0))
 #define __hh_map_setsize(m, s) (hh_i_map_setsize(__hh_i_vcast((m)), (s)))
-#define __hh_map_sort(m)       (hh_i_map_sort(__hh_i_vcast((m))))
-#define __hh_map_getidx(m, id) (hh_i_map_gfind(__hh_i_vcast((m)), (id)))
+#define __hh_map_sort(m)       (hh_i_map_sort((m)))
+#define __hh_map_getidx(m, id) (hh_i_map_gfind((m), (id)))
 #define __hh_map_in(m, id)     (__hh_map_getidx((m), (id)) >= 0)
 #define __hh_map_get(m, id, s)                                 \
    ({                                                          \
@@ -184,10 +184,10 @@ typedef uint64_t hh_map_hash_t;
       hh_i_map_add(__hh_i_vcast((m)), &__89tmp, (id)); \
    })
 #define __hh_map_del(m, id) (hh_i_map_del(__hh_i_vcast((m)), (id)))
-#define __hh_map_set(m, id, v)                         \
-   ({                                                  \
-      __typeof__((m)[0]) __88tmp = v;                  \
-      hh_i_map_set(__hh_i_vcast((m)), &__88tmp, (id)); \
+#define __hh_map_set(m, id, v)           \
+   ({                                    \
+      __typeof__((m)[0]) __88tmp = v;    \
+      hh_i_map_set((m), &__88tmp, (id)); \
    })
 #define __hh_map_pyset(m, id, v)                                           \
    ({                                                                      \
@@ -195,8 +195,8 @@ typedef uint64_t hh_map_hash_t;
       if (__87tmp == HH_EL_IN_REG) __87tmp = __hh_map_set((m), (id), (v)); \
       __87tmp;                                                             \
    })
-#define __hh_map_bh(m, r, s)   (hh_i_map_uhash(__hh_i_vcast((m)), (r), (s)))
-#define __hh_map_sh(m, r)      (hh_i_map_uhash(__hh_i_vcast((m)), (r), strlen((r))))
+#define __hh_map_bh(m, r, s)   (hh_i_map_uhash((m), (r), (s)))
+#define __hh_map_sh(m, r)      (hh_i_map_uhash((m), (r), strlen((r))))
 #define __hh_map_getid(m, idx) (*__hh_map_empti((m), (idx)))
 #define __hh_map_getp(m, id)                                                              \
    ((__typeof__(m))({                                                                     \
@@ -209,9 +209,9 @@ typedef uint64_t hh_map_hash_t;
 HH_EXTERN void          hh_i_map_init(struct hh_i_map_hdr_s *m, size_t es, bool autosort, bool cuckoo);
 HH_EXTERN void          hh_i_map_destroy(struct hh_i_map_hdr_s *m);
 HH_EXTERN hh_status_t   hh_i_map_setsize(void **m, size_t s);
-HH_EXTERN void          hh_i_map_sort(void **m);
-HH_EXTERN int           hh_i_map_gfind(void **m, hh_map_hash_t x);
+HH_EXTERN void          hh_i_map_sort(void *m);
+HH_EXTERN int           hh_i_map_gfind(void *m, hh_map_hash_t x);
 HH_EXTERN hh_status_t   hh_i_map_add(void **m, const void *ar, hh_map_hash_t id);
 HH_EXTERN hh_status_t   hh_i_map_del(void **m, hh_map_hash_t id);
-HH_EXTERN hh_status_t   hh_i_map_set(void **m, const void *ar, hh_map_hash_t id);
-HH_EXTERN hh_map_hash_t hh_i_map_uhash(void **m, const void *ar, size_t bytes);
+HH_EXTERN hh_status_t   hh_i_map_set(void *m, const void *ar, hh_map_hash_t id);
+HH_EXTERN hh_map_hash_t hh_i_map_uhash(void *m, const void *ar, size_t bytes);
