@@ -1,7 +1,6 @@
 hexhive_sources = [
 	'status.c',
 	'pstruct.c',
-	'register.c',
 	'svec.c',
 	'cuckoo.c',
 	'mt19937-64.c',

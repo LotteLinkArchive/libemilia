@@ -5,7 +5,6 @@
 #include "hashmap.h"
 #include "mt19937-64.h"
 #include "pstruct.h"
-#include "register.h"
 #include "status.h"
 #include "svec.h"
 #include "util.h"
