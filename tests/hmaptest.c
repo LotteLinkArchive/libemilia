@@ -42,6 +42,14 @@ int main(void)
       printf("fail: value of g7 was %d, not 4\n", g7);
       exit(EXIT_FAILURE);
    }
+
+	*__hh_map_getp(hmt, 7) = 5;
+	g7 = __hh_map_get(hmt, 7, NULL);
+   if (g7 != 5) {
+      printf("fail: value of g7 was %d, not 5\n", g7);
+      exit(EXIT_FAILURE);
+   }
+
    __hh_map_del(hmt, 7);
    if (__hh_map_in(hmt, 7)) {
       printf("fail: 7 still in hashmap after delete!\n");
@@ -56,20 +64,20 @@ int main(void)
 
    int g8 = __hh_map_get(hmt, 8, NULL);
    if (g8 != 9) {
-      printf("fail: value of g8 was %d, not 9 (after del)\n", g8);
+      printf("fail: value of g8 was %d, not 9\n", g8);
       exit(EXIT_FAILURE);
    }
 
    __hh_map_pyset(hmt, 99, 62);
    int g99 = __hh_map_get(hmt, 99, NULL);
    if (g99 != 62) {
-      printf("fail: value of g99 was %d, not 62 (after del)\n", g99);
+      printf("fail: value of g99 was %d, not 62\n", g99);
       exit(EXIT_FAILURE);
    }
 
    int g15 = __hh_map_get(hmt, 15, NULL);
    if (g15 != 16) {
-      printf("fail: value of g15 was %d, not 16 (after del)\n", g15);
+      printf("fail: value of g15 was %d, not 16\n", g15);
       exit(EXIT_FAILURE);
    }
 

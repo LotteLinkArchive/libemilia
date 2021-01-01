@@ -58,6 +58,10 @@
  * hm_getstat - (hashmap [hashmap ptr], id [hh_map_hash_t], hashmap_objptr [hopt *]) - returns (stat [hh_status_t])
  *    Ditto, but the roles of statptr and hashmap_object are reversed.
  *
+ * hm_getptr - (hashmap [hashmap ptr], id [hh_map_hash_t]) - returns (hashmap_objptr [hopt *])
+ *    Return a pointer to a value in the hashmap given by its ID. If the ID isn't in the hashmap, it will return NULL
+ *    instead.
+ *
  * hm_add - (hashmap [hashmap ptr], id [hh_map_hash_t], hashmap_object [hopt]) - returns (stat [hh_status_t])
  *    Add an element to the hashmap for the given ID. Returns HH_STATUS_OKAY if everything was fine.
  *    HH_INT_OVERFLOW - Too many elements (More than or equal to INT_MAX)
@@ -91,6 +95,7 @@
 #   define hm_in      __hh_map_in
 #   define hm_get     __hh_map_get
 #   define hm_getstat __hh_map_gets
+#   define hm_getptr  __hh_map_getp
 #   define hm_add     __hh_map_add
 #   define hm_set     __hh_map_set
 #   define hm_pyset   __hh_map_pyset
@@ -192,6 +197,12 @@ typedef uint64_t hh_map_hash_t;
 #define __hh_map_bh(m, r, s)   (hh_i_map_uhash(__hh_i_vcast((m)), (r), (s)))
 #define __hh_map_sh(m, r)      (hh_i_map_uhash(__hh_i_vcast((m)), (r), strlen((r))))
 #define __hh_map_getid(m, idx) (*__hh_map_empti((m), (idx)))
+#define __hh_map_getp(m, id)                                                              \
+   ((__typeof__(m))({                                                                     \
+      int __86tmp             = __hh_map_getidx((m), (id));                               \
+      __typeof__((m)) __85tmp = ((__86tmp >= 0) ? (__hh_map_getip((m), __86tmp)) : NULL); \
+      __85tmp;                                                                            \
+   }))
 
 /* Internal functions */
 HH_EXTERN void          hh_i_map_init(struct hh_i_map_hdr_s *m, size_t es, bool autosort, bool cuckoo);
