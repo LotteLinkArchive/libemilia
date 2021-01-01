@@ -83,6 +83,7 @@
  * hm_sh - (hashmap [hashmap ptr], data [const char *]) - returns (id [hh_map_hash_t])
  *    Ditto, but hashes a NULL-TERMINATED string.
  */
+
 #ifndef HH_MAP_NO_SIMPLIFIED
 #   define hm_make    __hh_map_mk
 #   define hm_free    __hh_map_destroy
