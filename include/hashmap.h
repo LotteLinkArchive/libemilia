@@ -129,7 +129,7 @@ typedef uint64_t hh_map_hash_t;
       if (__95tmp) { hh_i_map_init(__hh_i_mcast(__95tmp), sizeof(type), (autosort), (cuckoo)); } \
       __95tmp;                                                                                   \
    })
-#define __hh_map_destroy(m) (hh_i_map_destroy(__hh_i_mcast((m))))
+#define __hh_map_destroy(m) ({hh_i_map_destroy(__hh_i_mcast((m))); (m) = NULL;})
 
 /* Statistics */
 #define __hh_map_count(m)  ((m) ? ((__hh_i_mcast((m)))->elements) : 0)

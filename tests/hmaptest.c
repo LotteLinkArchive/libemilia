@@ -85,5 +85,5 @@ int main(void)
 
    __hh_map_destroy(hmt);
 
-   return !hmt;
+   return !!hmt;
 }
