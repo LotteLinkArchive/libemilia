@@ -54,4 +54,5 @@ dkms.conf
 
 builddir/
 build/
-hexhive.kdev4
+*.kdev4
+*.kate-swp
