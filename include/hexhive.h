@@ -8,3 +8,4 @@
 #include "status.h"
 #include "svec.h"
 #include "util.h"
+#include "entropygen.h"

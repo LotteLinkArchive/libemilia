@@ -4,6 +4,7 @@ hexhive_sources = [
 	'svec.c',
 	'cuckoo.c',
 	'mt19937-64.c',
-	'hashmap.c'
+	'hashmap.c',
+	'entropygen.c'
 ]
-hexhive = library('hexhive', hexhive_sources, version : '0.0.0', soversion : '0', include_directories : hexhive_incdir, dependencies : [xxhash_dep, libbsd_dep], install : true)
+hexhive = library('hexhive', hexhive_sources, version : '0.0.0', soversion : '0', include_directories : hexhive_incdir, dependencies : [xxhash_dep], install : true)

@@ -57,9 +57,9 @@
 --------------------------------------------------------------------------------------------------------------------- */
 
 #include "../include/mt19937-64.h"
+#include "../include/entropygen.h"
 
 #include <time.h>
-#include <bsd/stdlib.h>
 
 #define NN       HH_MT19937_NN
 #define MM       156
@@ -83,10 +83,7 @@ void hh_mt_init_basic(hh_mt19937_ro_t *o, bool pi_check)
 {
    if (pi_check && o->init) return;
 
-   uint64_t seed;
-   arc4random_buf(&seed, sizeof(uint64_t));
-   
-   hh_mt_init_genrand64(o, seed);
+   hh_mt_init_genrand64(o, hh_entropy_seed64());
 }
 
 void hh_mt_init_genrand64(hh_mt19937_ro_t *o, uint64_t seed)
