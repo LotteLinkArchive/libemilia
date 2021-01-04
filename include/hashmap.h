@@ -106,6 +106,11 @@
 #   endif
 #endif
 
+/* Hashmaps consume one contiguous region of memory (unless the cuckoo filter is enabled, where it consumes two)
+ * The region begins with the metadata header (struct hh_i_map_hdr_s) and is followed by an array of keys and values.
+ * The keys are of type hh_map_hash_t and the values are of user-specifiable type.
+ */
+
 struct hh_i_map_hdr_s {
    bool                autosort;
    bool                sorted;
