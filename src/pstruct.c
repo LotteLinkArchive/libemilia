@@ -181,7 +181,7 @@ void hh_psbuf_vpack(struct hh_psbuf_s *buffer, va_list ivariables)
          case HH_PSTYPE_I64: ivbuf.int64 = va_arg(ivariables, int64_t); break;
          case HH_PSTYPE_FLOAT: ivbuf.float32 = va_arg(ivariables, double); break; /* Repeat needed? */
          case HH_PSTYPE_DOUBLE: ivbuf.double64 = va_arg(ivariables, double); break;
-         default: break;
+         default: ivbuf.uint64 = 0; break;
       }
 
       hh_psfield_set(buffer, field_index, ivbuf);
