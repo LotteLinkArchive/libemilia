@@ -10,6 +10,7 @@
 #include "gdefs.h"
 
 enum hh_pdrt_types_e {
+   /* Internal primitives - In many cases, these can be collapsed into Bool, Integer, Unsigned Integer and Real */
    HH_DTTYPE_BOOL,
    HH_DTTYPE_SI8,
    HH_DTTYPE_UI8,
@@ -21,9 +22,13 @@ enum hh_pdrt_types_e {
    HH_DTTYPE_UI64,
    HH_DTTYPE_R32,
    HH_DTTYPE_R64,
+   
+   /* Lists store different types (inefficient), arrays store constant type (efficient) */
    HH_DTTYPE_LIST,
-   HH_DTTYPE_ARR, /* Could be multiple different types? */
-   HH_DTTYPE_DICT
+   HH_DTTYPE_ARR,
+   
+   /* Complex types */
+   HH_DTTYPE_HMT /* Hash map table */
 };
 
 typedef char hh_pdrt_type_t;
