@@ -21,10 +21,9 @@ enum hh_pdrt_types_e {
    HH_DTTYPE_UI64,
    HH_DTTYPE_R32,
    HH_DTTYPE_R64,
-   HH_DTTYPE_ARR,
-   HH_DTTYPE_BLOB,
-   HH_DTTYPE_UTF8,
-   HH_DTTYPE_TABLE
+   HH_DTTYPE_LIST,
+   HH_DTTYPE_ARR, /* Could be multiple different types? */
+   HH_DTTYPE_DICT
 };
 
 typedef char hh_pdrt_type_t;
