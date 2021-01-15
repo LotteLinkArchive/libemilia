@@ -26,5 +26,5 @@ struct hh_asa_elhdr_s {
 #define HH_ASA_EH_SZ sizeof(struct hh_asa_elhdr_s)
 
 static const struct hh_asa_hdr_s hh_asa_defhr
-    = {.tier = 3, .tier_change_time = 0, .highest_index = 0, .element_size = 0, .seed = 0};
+    = {.tier = 2, .tier_change_time = 0, .highest_index = 0, .element_size = 0, .seed = 0};
 
