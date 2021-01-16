@@ -43,6 +43,7 @@ struct hh_asa_elhdr_s {
 #define HH_ASA_MIN_TIER 2
 #define HH_ASA_MAX_TIER 30
 
+HH_EXTERN hh_asa_id_t hh_i_asa_hrange(void **a, void *key, size_t amt);
 HH_EXTERN hh_status_t hh_i_asa_init(void **a, size_t el_size);
 HH_EXTERN hh_status_t hh_i_asa_empty(void **a);
 HH_EXTERN uint32_t    hh_i_asa_probe(void **a, uint32_t key, unsigned char tier);

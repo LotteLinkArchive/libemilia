@@ -18,6 +18,16 @@ static const struct hh_asa_hdr_s hh_asa_defhr
 #define I_REINHDR header = *a;
 #define I_TELS_HS (header->element_size + HH_ASA_EH_SZ)
 
+hh_asa_id_t hh_i_asa_hrange(void **a, void *key, size_t amt)
+{
+   I_PREPHDR;
+   
+   XXH128_hash_t xhash = XXH3_128bits_withSeed(key, amt, (XXH64_hash_t)header->seed);
+   hh_asa_id_t fhash = {.h64s[0] = xhash.low64, .h64s[1] = xhash.high64};
+   
+   return fhash;
+}
+    
 hh_status_t hh_i_asa_init(void **a, size_t el_size)
 {
    /* Seed the global RNG if it hasn't been done already */
