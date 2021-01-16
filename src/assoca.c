@@ -1,5 +1,6 @@
 #include "../include/assoca.h"
 
+#include <time.h>
 #include <xxhash.h>
 
 #include "../include/mt19937-64.h"
@@ -10,6 +11,8 @@ static const unsigned long tiermasks[]
        0x000001FF, 0x000003FF, 0x000007FF, 0x00000FFF, 0x00001FFF, 0x00003FFF, 0x00007FFF, 0x0000FFFF,
        0x0001FFFF, 0x0003FFFF, 0x0007FFFF, 0x000FFFFF, 0x001FFFFF, 0x003FFFFF, 0x007FFFFF, 0x00FFFFFF,
        0x01FFFFFF, 0x03FFFFFF, 0x07FFFFFF, 0x0FFFFFFF, 0x1FFFFFFF, 0x3FFFFFFF, 0x7FFFFFFF, 0xFFFFFFFF}; /* TM i31 UU */
+static const struct hh_asa_hdr_s hh_asa_defhr
+    = {.tier = HH_ASA_MIN_TIER, .tier_change_time = 0, .highest_index = 0, .element_size = 0, .seed = 0};
 
 #define I_PREPHDR struct hh_asa_hdr_s *header = *a;
 #define I_TELS_HS (header->element_size + HH_ASA_EH_SZ)
@@ -64,18 +67,6 @@ uint32_t hh_i_asa_probe(void **a, uint32_t key, unsigned char tier)
 #endif
 }
 
-hh_status_t hh_i_asa_ensurei(void **a, uint32_t high_as)
-{
-   I_PREPHDR;
-
-   *a = realloc(*a, HH_ASA_HR_SZ + ((high_as + 1) * I_TELS_HS));
-   if (!*a) return HH_OUT_OF_MEMORY;
-
-   header->highest_index = high_as;
-
-   return HH_STATUS_OKAY;
-}
-
 void *hh_i_asa_getip(void **a, uint32_t i)
 {
    I_PREPHDR;
@@ -86,14 +77,33 @@ void *hh_i_asa_getip(void **a, uint32_t i)
    return (i > header->highest_index) ? NULL : b;
 }
 
-bool hh_i_asa_eq_id(struct hh_asa_id_s ida, struct hh_asa_id_s idb)
+hh_status_t hh_i_asa_ensurei(void **a, uint32_t high_as)
+{
+   I_PREPHDR;
+
+   size_t olsize = HH_ASA_HR_SZ + ((header->highest_index + 1) * I_TELS_HS);
+   size_t nwsize = HH_ASA_HR_SZ + ((high_as + 1) * I_TELS_HS);
+   
+   if (nwsize <= olsize) return HH_STATUS_OKAY;
+   
+   *a = realloc(*a, nwsize);
+   if (!*a) return HH_OUT_OF_MEMORY;
+
+   memset(hh_i_asa_getip(a, header->highest_index + 1), 0, nwsize - olsize);
+   
+   header->highest_index = high_as;
+
+   return HH_STATUS_OKAY;
+}
+
+bool hh_i_asa_eq_id(hh_asa_id_t ida, hh_asa_id_t idb)
 {
    if (ida.h64s[0] != idb.h64s[0] || ida.h64s[1] != idb.h64s[1]) return false;
 
    return true;
 }
 
-int32_t hh_i_asa_lookup(void **a, struct hh_asa_id_s id)
+int32_t hh_i_asa_lookup(void **a, hh_asa_id_t id)
 {
    I_PREPHDR;
 
@@ -146,4 +156,68 @@ i_lookup_found:
    }
 
    return probe;
+}
+
+hh_status_t hh_i_asa_grow(void **a)
+{
+   I_PREPHDR;
+
+   if ((double)header->elements <= ((3.0L / 4.0L) * (double)(tiermasks[header->tier] + 1))) return HH_STATUS_OKAY;
+   if (header->tier >= HH_ASA_MAX_TIER) return HH_INT_OVERFLOW;
+
+   header->tier++;
+   header->tier_change_time = time(NULL);
+
+   return HH_STATUS_OKAY;
+}
+
+hh_status_t hh_i_asa_set(void **a, hh_asa_id_t id, void *value)
+{
+   I_PREPHDR;
+   
+   int32_t ilookup = hh_i_asa_lookup(a, id);
+   if (ilookup >= 0) {
+      memcpy((struct hh_asa_elhdr_s *)hh_i_asa_getip(a, ilookup) + 1, value, header->element_size);
+      return HH_STATUS_OKAY;
+   }
+   
+   hh_status_t gstat = hh_i_asa_grow(a);
+   if (gstat != HH_STATUS_OKAY) return gstat;
+   
+   uint32_t probe = id.h64s[0] & tiermasks[header->tier];
+   struct hh_asa_elhdr_s *cur_el_hdr;
+   bool first = true;
+   uint8_t flagset = 0;
+   
+   /* It miiight be possible for this to loop forever, maybe. No, actually, I don't think it will. Maybe. */
+   for (;;) {
+      gstat = hh_i_asa_ensurei(a, probe);
+      if (gstat != HH_STATUS_OKAY) return gstat;
+      
+      cur_el_hdr = hh_i_asa_getip(a, probe);
+      
+      if (cur_el_hdr->flags & 0x2) {
+         flagset = cur_el_hdr->flags ^ 0x2; /* NOTE: Copies ALL other flags if LD! */
+         goto i_insert_lda;
+      }
+      if (!(cur_el_hdr->flags & 0x1)) {
+i_insert_lda:
+         flagset |= 0x1;
+         break;
+      }
+      
+      probe = hh_i_asa_probe(a, probe, header->tier);
+      flagset = 0;
+      
+      if (first) {
+         cur_el_hdr->flags |= 0x4;
+         first = !first;
+      }
+   }
+   
+   cur_el_hdr->flags = flagset;
+   cur_el_hdr->id = id;
+   
+   memcpy(cur_el_hdr + 1, value, header->element_size);
+   return HH_STATUS_OKAY;
 }
