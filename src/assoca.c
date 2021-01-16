@@ -15,6 +15,7 @@ static const struct hh_asa_hdr_s hh_asa_defhr
     = {.tier = HH_ASA_MIN_TIER, .tier_change_time = 0, .highest_index = 0, .element_size = 0, .seed = 0};
 
 #define I_PREPHDR struct hh_asa_hdr_s *header = *a;
+#define I_REINHDR header = *a;
 #define I_TELS_HS (header->element_size + HH_ASA_EH_SZ)
 
 hh_status_t hh_i_asa_init(void **a, size_t el_size)
@@ -29,6 +30,7 @@ hh_status_t hh_i_asa_init(void **a, size_t el_size)
    *a = realloc(*a, HH_ASA_HR_SZ + (el_size + HH_ASA_EH_SZ));
    if (!*a) return HH_OUT_OF_MEMORY;
    memcpy(*a, &hh_asa_defhr, HH_ASA_HR_SZ);
+   memset(((struct hh_asa_hdr_s *)*a) + 1, 0, (el_size + HH_ASA_EH_SZ));
 
    I_PREPHDR;
 
@@ -57,8 +59,6 @@ hh_status_t hh_i_asa_empty(void **a)
 
 uint32_t hh_i_asa_probe(void **a, uint32_t key, unsigned char tier)
 {
-   I_PREPHDR;
-
    key++;
 #ifdef HH_I_ASA_RANDOMP
    return (XXH32(&key, sizeof(key), header->seed)) & tiermasks[tier];
@@ -81,17 +81,19 @@ hh_status_t hh_i_asa_ensurei(void **a, uint32_t high_as)
 {
    I_PREPHDR;
 
-   size_t olsize = HH_ASA_HR_SZ + ((header->highest_index + 1) * I_TELS_HS);
-   size_t nwsize = HH_ASA_HR_SZ + ((high_as + 1) * I_TELS_HS);
+   uint32_t ohil   = header->highest_index + 1;
+   size_t   olsize = HH_ASA_HR_SZ + ((size_t)ohil * I_TELS_HS);
+   size_t   nwsize = HH_ASA_HR_SZ + (((size_t)high_as + 1) * I_TELS_HS);
    
    if (nwsize <= olsize) return HH_STATUS_OKAY;
    
    *a = realloc(*a, nwsize);
    if (!*a) return HH_OUT_OF_MEMORY;
-
-   memset(hh_i_asa_getip(a, header->highest_index + 1), 0, nwsize - olsize);
    
+   I_REINHDR;
+
    header->highest_index = high_as;
+   memset(hh_i_asa_getip(a, ohil), 0, nwsize - olsize);
 
    return HH_STATUS_OKAY;
 }
@@ -133,6 +135,7 @@ int32_t hh_i_asa_lookup(void **a, hh_asa_id_t id)
          searches++;
 
 #ifndef HH_I_ASA_RANDOMP
+         /* https://www.youtube.com/watch?v=Tk5cDyvhJEE */
          if (searches > tiermasks[(unsigned char)tier]) break;
 #endif
 
@@ -174,50 +177,53 @@ hh_status_t hh_i_asa_grow(void **a)
 hh_status_t hh_i_asa_set(void **a, hh_asa_id_t id, void *value)
 {
    I_PREPHDR;
-   
+
    int32_t ilookup = hh_i_asa_lookup(a, id);
    if (ilookup >= 0) {
       memcpy((struct hh_asa_elhdr_s *)hh_i_asa_getip(a, ilookup) + 1, value, header->element_size);
       return HH_STATUS_OKAY;
    }
-   
+
    hh_status_t gstat = hh_i_asa_grow(a);
    if (gstat != HH_STATUS_OKAY) return gstat;
-   
-   uint32_t probe = id.h64s[0] & tiermasks[header->tier];
+
+   uint32_t               probe = id.h64s[0] & tiermasks[header->tier];
    struct hh_asa_elhdr_s *cur_el_hdr;
-   bool first = true;
-   uint8_t flagset = 0;
-   
+   bool                   first   = true;
+   uint8_t                flagset = 0;
+
    /* It miiight be possible for this to loop forever, maybe. No, actually, I don't think it will. Maybe. */
    for (;;) {
       gstat = hh_i_asa_ensurei(a, probe);
+      
+      I_REINHDR;
+      
       if (gstat != HH_STATUS_OKAY) return gstat;
-      
+
       cur_el_hdr = hh_i_asa_getip(a, probe);
-      
+
       if (cur_el_hdr->flags & 0x2) {
          flagset = cur_el_hdr->flags ^ 0x2; /* NOTE: Copies ALL other flags if LD! */
          goto i_insert_lda;
       }
       if (!(cur_el_hdr->flags & 0x1)) {
-i_insert_lda:
+      i_insert_lda:
          flagset |= 0x1;
          break;
       }
-      
-      probe = hh_i_asa_probe(a, probe, header->tier);
+
+      probe   = hh_i_asa_probe(a, probe, header->tier);
       flagset = 0;
-      
+
       if (first) {
          cur_el_hdr->flags |= 0x4;
          first = !first;
       }
    }
-   
+
    cur_el_hdr->flags = flagset;
-   cur_el_hdr->id = id;
-   
+   cur_el_hdr->id    = id;
+
    memcpy(cur_el_hdr + 1, value, header->element_size);
    return HH_STATUS_OKAY;
 }
