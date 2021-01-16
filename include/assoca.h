@@ -21,6 +21,14 @@ struct hh_asa_hdr_s {
 };
 
 struct hh_asa_elhdr_s {
+   /* ASSOCA ELEMENT HEADER LAYOUT:
+    * #%%%%%%%%%%%%%%%% (# = Flags | % = Hash)
+    * FLAG LAYOUT:
+    * 0 0 0 0 0 0 0 0
+    *           | | \- Occupied
+    *           | \--- Lazy-delete
+    *           \----- Collided
+    */
    uint8_t            flags;
    struct hh_asa_id_s id;
 } __attribute__((packed));
@@ -29,5 +37,7 @@ struct hh_asa_elhdr_s {
 #define HH_ASA_HR_SZ sizeof(struct hh_asa_hdr_s)
 #define HH_ASA_EH_SZ sizeof(struct hh_asa_elhdr_s)
 
+#define HH_ASA_MIN_TIER 2
+
 static const struct hh_asa_hdr_s hh_asa_defhr
-    = {.tier = 2, .tier_change_time = 0, .highest_index = 0, .element_size = 0, .seed = 0};
+    = {.tier = HH_ASA_MIN_TIER, .tier_change_time = 0, .highest_index = 0, .element_size = 0, .seed = 0};
