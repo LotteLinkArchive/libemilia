@@ -57,7 +57,11 @@ uint32_t hh_i_asa_probe(void **a, uint32_t key, unsigned char tier)
    I_PREPHDR;
 
    key++;
+#ifdef HH_I_ASA_RANDOMP
    return (XXH32(&key, sizeof(key), header->seed)) & tiermasks[tier];
+#else
+   return key & tiermasks[tier];
+#endif
 }
 
 hh_status_t hh_i_asa_ensurei(void **a, uint32_t high_as)
@@ -96,9 +100,11 @@ int32_t hh_i_asa_lookup(void **a, struct hh_asa_id_s id)
    int32_t                first_lazydel_idx = -1;
    uint32_t               probe;
    struct hh_asa_elhdr_s *cur_el_hdr;
+   signed char            tier;
 
-   for (signed char tier = header->tier; tier >= HH_ASA_MIN_TIER; tier--) {
-      probe = id.h64s[0] & tiermasks[(unsigned char)tier];
+   for (tier = header->tier; tier >= HH_ASA_MIN_TIER; tier--) {
+      probe             = id.h64s[0] & tiermasks[(unsigned char)tier];
+      uint32_t searches = 0;
 
       for (;;) {
          cur_el_hdr = hh_i_asa_getip(a, probe);
@@ -114,6 +120,12 @@ int32_t hh_i_asa_lookup(void **a, struct hh_asa_id_s id)
          if (comparison) goto i_lookup_found;
          if (!(cur_el_hdr->flags & 0x4)) break;
 
+         searches++;
+
+#ifndef HH_I_ASA_RANDOMP
+         if (searches > tiermasks[(unsigned char)tier]) break;
+#endif
+
          probe = hh_i_asa_probe(a, probe, tier);
       }
 
@@ -123,6 +135,10 @@ int32_t hh_i_asa_lookup(void **a, struct hh_asa_id_s id)
    return -1;
 i_lookup_found:
    if (first_lazydel_idx >= 0) {
+      struct hh_asa_elhdr_s *t_el_hdr = hh_i_asa_getip(a, hh_i_asa_probe(a, probe, tier));
+      if (t_el_hdr)
+         if (t_el_hdr->flags & 0x1) return probe;
+
       memcpy(hh_i_asa_getip(a, first_lazydel_idx), cur_el_hdr, I_TELS_HS);
       memset(cur_el_hdr, 0, I_TELS_HS);
 
