@@ -21,13 +21,13 @@ static const struct hh_asa_hdr_s hh_asa_defhr
 hh_asa_id_t hh_i_asa_hrange(void **a, void *key, size_t amt)
 {
    I_PREPHDR;
-   
+
    XXH128_hash_t xhash = XXH3_128bits_withSeed(key, amt, (XXH64_hash_t)header->seed);
-   hh_asa_id_t fhash = {.h64s[0] = xhash.low64, .h64s[1] = xhash.high64};
-   
+   hh_asa_id_t   fhash = {.h64s[0] = xhash.low64, .h64s[1] = xhash.high64};
+
    return fhash;
 }
-    
+
 hh_status_t hh_i_asa_init(void **a, size_t el_size)
 {
    /* Seed the global RNG if it hasn't been done already */
@@ -94,12 +94,12 @@ hh_status_t hh_i_asa_ensurei(void **a, uint32_t high_as)
    uint32_t ohil   = header->highest_index + 1;
    size_t   olsize = HH_ASA_HR_SZ + ((size_t)ohil * I_TELS_HS);
    size_t   nwsize = HH_ASA_HR_SZ + (((size_t)high_as + 1) * I_TELS_HS);
-   
+
    if (nwsize <= olsize) return HH_STATUS_OKAY;
-   
+
    *a = realloc(*a, nwsize);
    if (!*a) return HH_OUT_OF_MEMORY;
-   
+
    I_REINHDR;
 
    header->highest_index = high_as;
@@ -205,9 +205,9 @@ hh_status_t hh_i_asa_set(void **a, hh_asa_id_t id, void *value)
    /* It miiight be possible for this to loop forever, maybe. No, actually, I don't think it will. Maybe. */
    for (;;) {
       gstat = hh_i_asa_ensurei(a, probe);
-      
+
       I_REINHDR;
-      
+
       if (gstat != HH_STATUS_OKAY) return gstat;
 
       cur_el_hdr = hh_i_asa_getip(a, probe);
