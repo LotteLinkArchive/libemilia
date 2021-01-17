@@ -249,6 +249,8 @@ hh_status_t hh_i_asa_delete(void **a, hh_asa_id_t id)
 
    struct hh_asa_elhdr_s *cur_el_hdr = hh_i_asa_getip(a, ilookup);
 
+   /* TODO: Add alternative deletion method that avoids lazy deletes for random probing. */
+   
    cur_el_hdr->flags |= 0x2;
    header->elements--;
 

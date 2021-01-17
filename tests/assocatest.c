@@ -4,8 +4,11 @@
 #include "../include/assoca.h"
 
 int main(void) {
-   int *stuff = NULL;
-   hh_i_asa_init((void **)&stuff, sizeof(int));
+   int *stuff = aa_make(int);
+   if (!stuff) {
+      printf("Allocation failure!\n");
+      return EXIT_FAILURE;
+   }
    
    hh_asa_id_t tid = {.h64s = {58185, 69692}};
    int tval = 6969;

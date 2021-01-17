@@ -8,6 +8,54 @@
 #include "gdefs.h"
 #include "status.h"
 
+#ifndef HH_ASA_NO_SIMPLIFIED
+#   define aa_make    __hh_asa_mk
+#   define aa_free    __hh_asa_destroy
+#   define aa_count   __hh_asa_count
+#   define aa_idtoidx __hh_asa_getidx
+#   define aa_idxtoid __hh_asa_getid
+#   define aa_in      __hh_asa_in
+#   define aa_get     __hh_asa_get
+#   define aa_getptr  __hh_asa_getp
+#   define aa_set     __hh_asa_set
+#   ifndef HH_ASA_NO_SIMPLE_HASHES
+#      define aa_bh __hh_asa_bh
+#      define aa_sh __hh_asa_sh
+#      define aa_vh __hh_asa_vh
+#   endif
+#endif
+
+#define __hh_asa_mk(type)                                       \
+   ({                                                           \
+      type *__84tmp = NULL;                                     \
+      hh_i_asa_init((__hh_i_asa_vcast(__84tmp)), sizeof(type)); \
+      __84tmp;                                                  \
+   })
+#define __hh_asa_destroy(m)    ((m) ? (free(m), 0) : 0)
+#define __hh_asa_count(m)      ((__hh_i_asa_hcast((m)))->elements)
+#define __hh_asa_getidx(m, id) (hh_i_asa_lookup((__hh_i_asa_vcast((m))), (id)))
+#define __hh_asa_getid(m, idx) ((__hh_i_asa_ecast((hh_i_asa_getip((__hh_i_asa_vcast((m))), (idx)))))->id)
+#define __hh_asa_in(m, id)     ((__hh_asa_getidx((m), (id))) >= 0)
+#define __hh_asa_getp(m, id) \
+   ((__typeof__(m) *)((__hh_i_asa_ecast((hh_i_asa_getip((__hh_i_asa_vcast((m))), (__hh_asa_getidx((m), (id))))))) + 1))
+#define __hh_asa_get(m, id) (*(__hh_asa_getp((m), (id))))
+#define __hh_asa_set(m, id, i)                               \
+   ({                                                        \
+      __typeof__(m) __83tmp = (i);                           \
+      hh_i_asa_set((__hh_i_asa_vcast((m))), (id), &__83tmp); \
+   })
+#define __hh_asa_bh(m, r, s) (hh_i_asa_hrange((__hh_i_asa_vcast((m))), (r), (s)))
+#define __hh_asa_sh(m, t)    (__hh_asa_bh((m), (t), strlen((t))))
+#define __hh_asa_vh(m, v)                            \
+   ({                                                \
+      __typeof__(v) __82tmp = (v);                   \
+      (__hh_asa_bh((m), &__82tmp, sizeof(__82tmp))); \
+   })
+
+#define __hh_i_asa_ecast(m) ((struct hh_asa_elhdr_s *)(m))
+#define __hh_i_asa_hcast(m) ((struct hh_asa_hdr_s *)(m))
+#define __hh_i_asa_vcast(m) ((void **)&(m))
+
 struct hh_asa_id_s {
    uint64_t h64s[2];
 } __attribute__((packed));
@@ -21,6 +69,8 @@ struct hh_asa_hdr_s {
    uint32_t      elements;
    size_t        element_size;
    uint64_t      seed;
+
+   /* TODO: Support bloom filter */
 };
 
 struct hh_asa_elhdr_s {
