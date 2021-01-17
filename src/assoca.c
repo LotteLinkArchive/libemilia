@@ -282,6 +282,8 @@ hh_status_t hh_i_asa_delete(void **a, hh_asa_id_t id)
    for (cindex = 0; cindex < bufels; cindex++) {
       cur_el_hdr = (struct hh_asa_elhdr_s *)(telbuf + (I_TELS_HS * bufels));
       hh_i_asa_set(a, cur_el_hdr->id, cur_el_hdr + 1);
+
+      I_REINHDR;
    }
 
    free(telbuf);
