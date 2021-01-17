@@ -11,29 +11,53 @@ int main(void)
       return EXIT_FAILURE;
    }
 
-   hh_asa_id_t tid  = {.h64s = {58185, 69692}};
-   int         tval = 6969;
-
-   if (hh_i_asa_lookup((void **)&stuff, tid) >= 0) {
-      printf("Lookup discovery warning!\n");
+   if (aa_in(stuff, aa_sh(stuff, "EL01"))) {
+      printf("EL01 found on init!\n");
       return EXIT_FAILURE;
    }
-
-   hh_i_asa_set((void **)&stuff, tid, &tval);
-
-   if (hh_i_asa_lookup((void **)&stuff, tid) < 0) {
-      printf("Lookup discovery failed!\n");
+   
+   if (aa_set(stuff, aa_sh(stuff, "EL01"), -4242) != HH_STATUS_OKAY) {
+      printf("EL01 could not be set on init!\n");
       return EXIT_FAILURE;
    }
-
-   hh_i_asa_delete((void **)&stuff, tid);
-
-   if (hh_i_asa_lookup((void **)&stuff, tid) >= 0) {
-      printf("Lookup discovery warning! (after free)\n");
+   
+   if (!aa_in(stuff, aa_sh(stuff, "EL01"))) {
+      printf("EL01 not found on init!\n");
       return EXIT_FAILURE;
    }
-
-   free(stuff);
+   
+   if (aa_get(stuff, aa_sh(stuff, "EL01")) != -4242) {
+      printf("EL01 was not -4242!\n");
+      return EXIT_FAILURE;
+   }
+   
+   for (unsigned char x = 0; x < 8; x++) {
+      if (aa_set(stuff, aa_vh(stuff, x), x + 1) != HH_STATUS_OKAY) {
+         printf("Spam elements could not be set!\n");
+         return EXIT_FAILURE;
+      }
+   }
+   
+   for (unsigned char x = 0; x < 8; x++) {
+      if (!aa_in(stuff, aa_vh(stuff, x))) {
+         printf("%u not found!\n", x);
+         return EXIT_FAILURE;
+      }
+      
+      if (aa_get(stuff, aa_vh(stuff, x)) != x + 1) {
+         printf("Spam elements were not valid!\n");
+         return EXIT_FAILURE;
+      }
+   }
+   
+   for (unsigned char x = 0; x < 8; x++) {
+      if (aa_del(stuff, aa_vh(stuff, x)) != HH_STATUS_OKAY) {
+         printf("Spam elements could not be deleted!\n");
+         return EXIT_FAILURE;
+      }
+   }
+   
+   aa_free(stuff);
 
    return EXIT_SUCCESS;
 }

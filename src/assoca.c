@@ -135,6 +135,7 @@ int32_t hh_i_asa_lookup(void ** a, hh_asa_id_t id)
 
    for (tier = header->tier; tier >= HH_ASA_MIN_TIER; tier--) {
       probe             = id.h64s[0] & tiermasks[(unsigned char)tier];
+      uint32_t tiprob   = probe;
       uint32_t searches = 0;
 
       for (;;) {
@@ -149,7 +150,7 @@ int32_t hh_i_asa_lookup(void ** a, hh_asa_id_t id)
             if (comparison) break;
          }
          if (comparison) goto i_lookup_found;
-         if (!(cur_el_hdr->flags & 0x4)) break;
+         if ((!(cur_el_hdr->flags & 0x4)) && (probe == tiprob)) break;
 
          searches++;
 
@@ -211,9 +212,9 @@ hh_status_t hh_i_asa_set(void ** a, hh_asa_id_t id, void * value)
    hh_status_t gstat = hh_i_asa_grow(a);
    if (gstat != HH_STATUS_OKAY) return gstat;
 
-   uint32_t                probe = id.h64s[0] & tiermasks[header->tier];
+   uint32_t                probe   = id.h64s[0] & tiermasks[header->tier];
+   uint32_t                tiprobe = probe;
    struct hh_asa_elhdr_s * cur_el_hdr;
-   bool                    first   = true;
    uint8_t                 flagset = 0;
 
    /* It miiight be possible for this to loop forever, maybe. No, actually, I
@@ -238,13 +239,10 @@ hh_status_t hh_i_asa_set(void ** a, hh_asa_id_t id, void * value)
          break;
       }
 
+      if (probe == tiprobe) cur_el_hdr->flags |= 0x4;
+
       probe   = hh_i_asa_probe(a, probe, header->tier);
       flagset = 0;
-
-      if (first) {
-         cur_el_hdr->flags |= 0x4;
-         first = !first;
-      }
    }
 
    cur_el_hdr->flags = flagset;

@@ -18,6 +18,7 @@
 #   define aa_get     __hh_asa_get
 #   define aa_getptr  __hh_asa_getp
 #   define aa_set     __hh_asa_set
+#   define aa_del     __hh_asa_rem
 #   ifndef HH_ASA_NO_SIMPLE_HASHES
 #      define aa_bh __hh_asa_bh
 #      define aa_sh __hh_asa_sh
@@ -48,6 +49,8 @@
       __typeof__(m[0]) __83tmp = (i);                        \
       hh_i_asa_set((__hh_i_asa_vcast((m))), (id), &__83tmp); \
    })
+#define __hh_asa_rem(m, id) (hh_i_asa_delete((__hh_i_asa_vcast((m))), (id)))
+
 #define __hh_asa_bh(m, r, s) \
    (hh_i_asa_hrange((__hh_i_asa_vcast((m))), (r), (s)))
 #define __hh_asa_sh(m, t) (__hh_asa_bh((m), (t), strlen((t))))
