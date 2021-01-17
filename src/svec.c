@@ -1,8 +1,8 @@
 #include "../include/svec.h"
 
-hh_status_t hh_i_dyn_set_els(void **a, size_t n, size_t e)
+hh_status_t hh_i_dyn_set_els(void ** a, size_t n, size_t e)
 {
-   void *x = ((size_t *)realloc(__hh_i_dyn_raw(*a), __hh_i_dyn_trs(n, e))) + 2;
+   void * x = ((size_t *)realloc(__hh_i_dyn_raw(*a), __hh_i_dyn_trs(n, e))) + 2;
    if (!x) return HH_OUT_OF_MEMORY;
 
    *a                    = x;
@@ -12,7 +12,7 @@ hh_status_t hh_i_dyn_set_els(void **a, size_t n, size_t e)
    return HH_STATUS_OKAY;
 }
 
-hh_status_t hh_i_dyn_ins(void **a, size_t i, void *e)
+hh_status_t hh_i_dyn_ins(void ** a, size_t i, void * e)
 {
    if (i > __hh_dyn_count(*a)) return HH_OUT_OF_BOUNDS;
 
@@ -30,7 +30,7 @@ hh_status_t hh_i_dyn_ins(void **a, size_t i, void *e)
    return HH_STATUS_OKAY;
 }
 
-hh_status_t hh_i_dyn_del(void **a, size_t i)
+hh_status_t hh_i_dyn_del(void ** a, size_t i)
 {
    if (i >= __hh_dyn_count(*a)) return HH_OUT_OF_BOUNDS;
 

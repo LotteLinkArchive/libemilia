@@ -20,4 +20,4 @@ enum hh_status_codes_e {
 typedef unsigned char hh_status_t;
 typedef hh_status_t   hh_stat_t;
 
-HH_EXTERN const char *hh_status_str(hh_status_t status_code);
+HH_EXTERN const char * hh_status_str(hh_status_t status_code);

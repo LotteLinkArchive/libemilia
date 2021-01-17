@@ -12,7 +12,7 @@ AllowAllConstructorInitializersOnNextLine: 'true'
 AllowAllParametersOfDeclarationOnNextLine: 'true'
 AllowShortBlocksOnASingleLine: 'true'
 AllowShortCaseLabelsOnASingleLine: 'true'
-AllowShortFunctionsOnASingleLine: All
+AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: Always
 AllowShortLambdasOnASingleLine: All
 AllowShortLoopsOnASingleLine: 'true'
@@ -25,7 +25,8 @@ BreakBeforeBinaryOperators: All
 BreakBeforeBraces: Linux
 BreakBeforeTernaryOperators: 'true'
 BreakStringLiterals: 'true'
-ColumnLimit: '120'
+ColumnLimit: '80'
+ContinuationIndentWidth: '3'
 DerivePointerAlignment: 'false'
 IncludeBlocks: Regroup
 IndentCaseLabels: 'true'
@@ -34,8 +35,8 @@ IndentWidth: '3'
 IndentWrappedFunctionNames: 'false'
 KeepEmptyLinesAtTheStartOfBlocks: 'false'
 Language: Cpp
-PointerAlignment: Right
-ReflowComments: 'false'
+PointerAlignment: Middle
+ReflowComments: 'true'
 SortIncludes: 'true'
 SpaceAfterCStyleCast: 'false'
 SpaceAfterLogicalNot: 'false'

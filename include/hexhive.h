@@ -1,6 +1,8 @@
 #pragma once
 
+#include "assoca.h"
 #include "cuckoo.h"
+#include "entropygen.h"
 #include "gdefs.h"
 #include "hashmap.h"
 #include "mt19937-64.h"
@@ -8,5 +10,3 @@
 #include "status.h"
 #include "svec.h"
 #include "util.h"
-#include "entropygen.h"
-#include "assoca.h"

@@ -22,10 +22,12 @@ struct hh_pstype_s {
    bool is_valid;
 };
 
-/* This function just does type property recognition. It finds out the validity, variableness and size of a type. */
+/* This function just does type property recognition. It finds out the validity,
+ * variableness and size of a type. */
 struct hh_pstype_s hh_pstype_get(char type)
 {
-   struct hh_pstype_s output = {.type = type, .is_valid = true, .is_variable = true};
+   struct hh_pstype_s output
+      = {.type = type, .is_valid = true, .is_variable = true};
 
    switch (type) {
       case HH_PSTYPE_PAD:
@@ -52,10 +54,11 @@ struct hh_pstype_s hh_pstype_get(char type)
    return output;
 }
 
-struct hh_psformat_s hh_make_psformat(const char *format_string)
+struct hh_psformat_s hh_make_psformat(const char * format_string)
 {
-   struct hh_psformat_s output
-       = {.format_string = format_string, .format_str_chars = strlen(format_string), .status = HH_STATUS_OKAY};
+   struct hh_psformat_s output = {.format_string    = format_string,
+                                  .format_str_chars = strlen(format_string),
+                                  .status           = HH_STATUS_OKAY};
 
    for (;;) {
       struct hh_pstype_s cproc = hh_pstype_get(*format_string++);
@@ -71,7 +74,7 @@ struct hh_psformat_s hh_make_psformat(const char *format_string)
    return output;
 }
 
-struct hh_psbuf_s hh_psmkbuf(struct hh_psformat_s *format, void *data)
+struct hh_psbuf_s hh_psmkbuf(struct hh_psformat_s * format, void * data)
 {
    struct hh_psbuf_s output = {.format = format, .status = HH_STATUS_OKAY};
 
@@ -86,7 +89,7 @@ struct hh_psbuf_s hh_psmkbuf(struct hh_psformat_s *format, void *data)
    if (data) memcpy(output.buffer, data, MBSIZE);
    else
       memset(output.buffer, 0, MBSIZE);
-   uint8_t *bdata = output.buffer;
+   uint8_t * bdata = output.buffer;
 
    const char * format_string = format->format_string;
    unsigned int field_index   = 0;
@@ -118,9 +121,12 @@ hh_psmkbuf_oom:
 #undef MBSIZE
 }
 
-void hh_psupdbuf(struct hh_psbuf_s *buffer, void *data) { memcpy(buffer->buffer, data, buffer->format->data_length); }
+void hh_psupdbuf(struct hh_psbuf_s * buffer, void * data)
+{
+   memcpy(buffer->buffer, data, buffer->format->data_length);
+}
 
-hh_status_t hh_psfreebuf(struct hh_psbuf_s *buffer)
+hh_status_t hh_psfreebuf(struct hh_psbuf_s * buffer)
 {
    if (!buffer->fields || !buffer->buffer) return HH_DOUBLE_FREE;
 
@@ -145,14 +151,17 @@ hh_status_t hh_psfreebuf(struct hh_psbuf_s *buffer)
       default: break;                                               \
    }
 
-void hh_psfield_set(struct hh_psbuf_s *buffer, unsigned int index, union hh_pstypebuf_u value)
+void hh_psfield_set(struct hh_psbuf_s *  buffer,
+                    unsigned int         index,
+                    union hh_pstypebuf_u value)
 {
    TIPSY_CONVERT(buffer->fields[index].type, htons, htonl, htonll);
 
    memcpy(buffer->fields[index].data, &value, buffer->fields[index].bytes);
 }
 
-union hh_pstypebuf_u hh_psfield_get(struct hh_psbuf_s *buffer, unsigned int index)
+union hh_pstypebuf_u hh_psfield_get(struct hh_psbuf_s * buffer,
+                                    unsigned int        index)
 {
    union hh_pstypebuf_u value;
    memcpy(&value, buffer->fields[index].data, buffer->fields[index].bytes);
@@ -164,9 +173,10 @@ union hh_pstypebuf_u hh_psfield_get(struct hh_psbuf_s *buffer, unsigned int inde
 
 #undef TIPSY_CONVERT
 
-void hh_psbuf_vpack(struct hh_psbuf_s *buffer, va_list ivariables)
+void hh_psbuf_vpack(struct hh_psbuf_s * buffer, va_list ivariables)
 {
-   for (unsigned int field_index = 0; field_index < buffer->format->variables; field_index++) {
+   for (unsigned int field_index = 0; field_index < buffer->format->variables;
+        field_index++) {
       union hh_pstypebuf_u ivbuf;
 
       switch (buffer->fields[field_index].type) {
@@ -175,12 +185,18 @@ void hh_psbuf_vpack(struct hh_psbuf_s *buffer, va_list ivariables)
          case HH_PSTYPE_U16:
          case HH_PSTYPE_I16:
          case HH_PSTYPE_I32:
-         case HH_PSTYPE_BOOL: ivbuf.int32 = va_arg(ivariables, int32_t); break; /* Repeat needed? */
+         case HH_PSTYPE_BOOL:
+            ivbuf.int32 = va_arg(ivariables, int32_t);
+            break; /* Repeat needed? */
          case HH_PSTYPE_U32: ivbuf.uint32 = va_arg(ivariables, uint32_t); break;
          case HH_PSTYPE_U64: ivbuf.uint64 = va_arg(ivariables, uint64_t); break;
          case HH_PSTYPE_I64: ivbuf.int64 = va_arg(ivariables, int64_t); break;
-         case HH_PSTYPE_FLOAT: ivbuf.float32 = va_arg(ivariables, double); break; /* Repeat needed? */
-         case HH_PSTYPE_DOUBLE: ivbuf.double64 = va_arg(ivariables, double); break;
+         case HH_PSTYPE_FLOAT:
+            ivbuf.float32 = va_arg(ivariables, double);
+            break; /* Repeat needed? */
+         case HH_PSTYPE_DOUBLE:
+            ivbuf.double64 = va_arg(ivariables, double);
+            break;
          default: ivbuf.uint64 = 0; break;
       }
 
@@ -188,7 +204,7 @@ void hh_psbuf_vpack(struct hh_psbuf_s *buffer, va_list ivariables)
    }
 }
 
-void hh_psbuf_pack(struct hh_psbuf_s *buffer, ...)
+void hh_psbuf_pack(struct hh_psbuf_s * buffer, ...)
 {
    va_list ivariables;
    va_start(ivariables, buffer);
@@ -196,16 +212,18 @@ void hh_psbuf_pack(struct hh_psbuf_s *buffer, ...)
    va_end(ivariables);
 }
 
-struct hh_psfinal_s hh_psfinalize(struct hh_psbuf_s *buffer)
+struct hh_psfinal_s hh_psfinalize(struct hh_psbuf_s * buffer)
 {
-   struct hh_psfinal_s data = {.data = buffer->buffer, .data_length = buffer->format->data_length, .isolated = false};
+   struct hh_psfinal_s data = {.data        = buffer->buffer,
+                               .data_length = buffer->format->data_length,
+                               .isolated    = false};
 
    return data;
 }
 
-hh_status_t hh_psfinal_isolate(struct hh_psfinal_s *final_ps)
+hh_status_t hh_psfinal_isolate(struct hh_psfinal_s * final_ps)
 {
-   void *ndata = malloc(final_ps->data_length);
+   void * ndata = malloc(final_ps->data_length);
    if (!ndata) return HH_OUT_OF_MEMORY;
 
    final_ps->isolated = true;
@@ -216,7 +234,7 @@ hh_status_t hh_psfinal_isolate(struct hh_psfinal_s *final_ps)
    return HH_STATUS_OKAY;
 }
 
-hh_status_t hh_psfin_isodestroy(struct hh_psfinal_s *final_ps)
+hh_status_t hh_psfin_isodestroy(struct hh_psfinal_s * final_ps)
 {
    if (!final_ps->isolated) return HH_REMOTE_ALLOC;
    if (!final_ps->data) return HH_DOUBLE_FREE;

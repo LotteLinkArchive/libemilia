@@ -5,7 +5,7 @@
 
 int main(void)
 {
-   int *hmt = __hh_map_mk(int, true, true);
+   int * hmt = __hh_map_mk(int, true, true);
 
    printf("%u ints -> %u\n", 4, (unsigned int)__hh_map_cmems(hmt, 4));
 
