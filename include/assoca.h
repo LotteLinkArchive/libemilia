@@ -53,3 +53,4 @@ HH_EXTERN bool        hh_i_asa_eq_id(hh_asa_id_t ida, hh_asa_id_t idb);
 HH_EXTERN int32_t     hh_i_asa_lookup(void **a, hh_asa_id_t id);
 HH_EXTERN hh_status_t hh_i_asa_grow(void **a);
 HH_EXTERN hh_status_t hh_i_asa_set(void **a, hh_asa_id_t id, void *value);
+HH_EXTERN hh_status_t hh_i_asa_delete(void **a, hh_asa_id_t id);

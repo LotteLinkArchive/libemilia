@@ -233,7 +233,54 @@ hh_status_t hh_i_asa_set(void **a, hh_asa_id_t id, void *value)
 
    cur_el_hdr->flags = flagset;
    cur_el_hdr->id    = id;
+   header->elements++;
 
    memcpy(cur_el_hdr + 1, value, header->element_size);
+
+   return HH_STATUS_OKAY;
+}
+
+hh_status_t hh_i_asa_delete(void **a, hh_asa_id_t id)
+{
+   I_PREPHDR;
+
+   int32_t ilookup = hh_i_asa_lookup(a, id);
+   if (ilookup < 0) return HH_EL_NOT_FOUND;
+
+   struct hh_asa_elhdr_s *cur_el_hdr = hh_i_asa_getip(a, ilookup);
+
+   cur_el_hdr->flags |= 0x2;
+   header->elements--;
+
+   /* Resize Section */
+
+   if (((double)header->elements > ((3.0L / 4.0L) * (double)(tiermasks[header->tier - 1] + 1)))
+       || ((time(NULL) - header->tier_change_time) < header->tier))
+      return HH_STATUS_OKAY;
+
+   char *   telbuf = malloc(header->elements * I_TELS_HS);
+   uint32_t bufels = 0;
+   if (!telbuf) return HH_OUT_OF_MEMORY;
+
+   uint32_t cindex;
+   for (cindex = 0; cindex <= header->highest_index; cindex++) {
+      cur_el_hdr = hh_i_asa_getip(a, cindex);
+
+      if ((cur_el_hdr->flags & 0x01) && !(cur_el_hdr->flags & 0x02)) {
+         memcpy((telbuf + (I_TELS_HS * bufels)), cur_el_hdr, I_TELS_HS);
+         bufels++;
+      }
+   }
+
+   hh_status_t cstat = hh_i_asa_empty(a);
+   if (cstat != HH_STATUS_OKAY) return cstat;
+
+   for (cindex = 0; cindex < bufels; cindex++) {
+      cur_el_hdr = (struct hh_asa_elhdr_s *)(telbuf + (I_TELS_HS * bufels));
+      hh_i_asa_set(a, cur_el_hdr->id, cur_el_hdr + 1);
+   }
+   
+   free(telbuf);
+
    return HH_STATUS_OKAY;
 }

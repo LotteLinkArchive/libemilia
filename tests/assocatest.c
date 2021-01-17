@@ -22,6 +22,13 @@ int main(void) {
       return EXIT_FAILURE;
    }
    
+   hh_i_asa_delete((void **)&stuff, tid);
+   
+   if (hh_i_asa_lookup((void **)&stuff, tid) >= 0) {
+      printf("Lookup discovery warning! (after free)\n");
+      return EXIT_FAILURE;
+   }
+   
    free(stuff);
    
    return EXIT_SUCCESS;
