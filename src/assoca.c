@@ -199,8 +199,11 @@ hh_status_t hh_i_asa_grow(void ** a)
 
 hh_status_t hh_i_asa_set(void ** a, hh_asa_id_t id, void * value)
 {
+   hh_status_t gstat = hh_i_asa_reform(a, false);
+   if (gstat != HH_STATUS_OKAY) return gstat;
+   
    I_PREPHDR;
-
+   
    int32_t ilookup = hh_i_asa_lookup(a, id);
    if (ilookup >= 0) {
       memcpy((struct hh_asa_elhdr_s *)hh_i_asa_getip(a, ilookup) + 1,
@@ -209,7 +212,7 @@ hh_status_t hh_i_asa_set(void ** a, hh_asa_id_t id, void * value)
       return HH_STATUS_OKAY;
    }
 
-   hh_status_t gstat = hh_i_asa_grow(a);
+   gstat = hh_i_asa_grow(a);
    if (gstat != HH_STATUS_OKAY) return gstat;
 
    uint32_t                probe   = id.h64s[0] & tiermasks[header->tier];
