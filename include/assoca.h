@@ -37,11 +37,11 @@
 #define __hh_asa_getid(m, idx) ((__hh_i_asa_ecast((hh_i_asa_getip((__hh_i_asa_vcast((m))), (idx)))))->id)
 #define __hh_asa_in(m, id)     ((__hh_asa_getidx((m), (id))) >= 0)
 #define __hh_asa_getp(m, id) \
-   ((__typeof__(m) *)((__hh_i_asa_ecast((hh_i_asa_getip((__hh_i_asa_vcast((m))), (__hh_asa_getidx((m), (id))))))) + 1))
+   ((__typeof__(m))((__hh_i_asa_ecast((hh_i_asa_getip((__hh_i_asa_vcast((m))), (__hh_asa_getidx((m), (id))))))) + 1))
 #define __hh_asa_get(m, id) (*(__hh_asa_getp((m), (id))))
 #define __hh_asa_set(m, id, i)                               \
    ({                                                        \
-      __typeof__(m) __83tmp = (i);                           \
+      __typeof__(m[0]) __83tmp = (i);                        \
       hh_i_asa_set((__hh_i_asa_vcast((m))), (id), &__83tmp); \
    })
 #define __hh_asa_bh(m, r, s) (hh_i_asa_hrange((__hh_i_asa_vcast((m))), (r), (s)))

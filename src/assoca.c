@@ -250,7 +250,7 @@ hh_status_t hh_i_asa_delete(void **a, hh_asa_id_t id)
    struct hh_asa_elhdr_s *cur_el_hdr = hh_i_asa_getip(a, ilookup);
 
    /* TODO: Add alternative deletion method that avoids lazy deletes for random probing. */
-   
+
    cur_el_hdr->flags |= 0x2;
    header->elements--;
 
@@ -277,11 +277,13 @@ hh_status_t hh_i_asa_delete(void **a, hh_asa_id_t id)
    hh_status_t cstat = hh_i_asa_empty(a);
    if (cstat != HH_STATUS_OKAY) return cstat;
 
+   I_REINHDR;
+
    for (cindex = 0; cindex < bufels; cindex++) {
       cur_el_hdr = (struct hh_asa_elhdr_s *)(telbuf + (I_TELS_HS * bufels));
       hh_i_asa_set(a, cur_el_hdr->id, cur_el_hdr + 1);
    }
-   
+
    free(telbuf);
 
    return HH_STATUS_OKAY;
