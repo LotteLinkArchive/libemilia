@@ -66,6 +66,8 @@ int main(void)
       }
    }
    
+   aa_del(stuff, aa_sh(stuff, "EL01"));
+   
    aa_free(stuff);
 
    return EXIT_SUCCESS;
