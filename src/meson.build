@@ -2,9 +2,7 @@ hexhive_sources = [
 	'status.c',
 	'pstruct.c',
 	'svec.c',
-	'cuckoo.c',
 	'mt19937-64.c',
-	'hashmap.c',
 	'entropygen.c',
 	'assoca.c'
 ]
