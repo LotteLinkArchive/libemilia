@@ -31,14 +31,16 @@ int main(void)
       return EXIT_FAILURE;
    }
    
-   for (unsigned char x = 0; x < 8; x++) {
+#define MKSPAMEL 128
+   
+   for (unsigned char x = 0; x < MKSPAMEL; x++) {
       if (aa_set(stuff, aa_vh(stuff, x), x + 1) != HH_STATUS_OKAY) {
          printf("Spam elements could not be set!\n");
          return EXIT_FAILURE;
       }
    }
    
-   for (unsigned char x = 0; x < 8; x++) {
+   for (unsigned char x = 0; x < MKSPAMEL; x++) {
       if (!aa_in(stuff, aa_vh(stuff, x))) {
          printf("%u not found!\n", x);
          return EXIT_FAILURE;
@@ -50,9 +52,16 @@ int main(void)
       }
    }
    
-   for (unsigned char x = 0; x < 8; x++) {
+   for (unsigned char x = 0; x < MKSPAMEL; x++) {
       if (aa_del(stuff, aa_vh(stuff, x)) != HH_STATUS_OKAY) {
          printf("Spam elements could not be deleted!\n");
+         return EXIT_FAILURE;
+      }
+   }
+   
+   for (unsigned char x = 0; x < MKSPAMEL; x++) {
+      if (aa_in(stuff, aa_vh(stuff, x))) {
+         printf("Spam elements found after deletion!!\n");
          return EXIT_FAILURE;
       }
    }
