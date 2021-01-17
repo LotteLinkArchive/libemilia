@@ -278,9 +278,9 @@ hh_status_t hh_i_asa_delete(void ** a, hh_asa_id_t id)
 
    char *   telbuf = malloc(header->elements * I_TELS_HS);
    uint32_t bufels = 0;
+   uint32_t cindex;
    if (!telbuf) return HH_OUT_OF_MEMORY;
 
-   uint32_t cindex;
    for (cindex = 0; cindex <= header->highest_index; cindex++) {
       cur_el_hdr = hh_i_asa_getip(a, cindex);
 
