@@ -23,6 +23,21 @@ static const struct hh_asa_hdr_s hh_asa_defhr = {.tier = HH_ASA_MIN_TIER,
 #define I_REINHDR header = *a;
 #define I_TELS_HS (header->element_size + HH_ASA_EH_SZ)
 
+static uint32_t hh_i_asa_rup2f32(uint32_t v)
+{
+   /* https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2 */
+   
+   v--;
+   v |= v >> 1;
+   v |= v >> 2;
+   v |= v >> 4;
+   v |= v >> 8;
+   v |= v >> 16;
+   v++;
+   
+   return v;
+}
+                                                 
 hh_asa_id_t hh_i_asa_hrange(void ** a, void * key, size_t amt)
 {
    I_PREPHDR;
@@ -263,9 +278,13 @@ hh_status_t hh_i_asa_reform(void ** a, bool forced)
 
    struct hh_asa_elhdr_s * cur_el_hdr;
 
+   unsigned char tmax = __hh_max(header->tier - 1, HH_ASA_MIN_TIER);
+   
+   if ((signed char)header->tier - 1 < HH_ASA_MIN_TIER) return HH_STATUS_OKAY;
+   
    if (!forced)
       if (((double)header->elements
-           > ((3.0L / 4.0L) * (double)(tiermasks[header->tier - 1] + 1)))
+           > ((3.0L / 4.0L) * (double)(tiermasks[tmax] + 1)))
           || ((time(NULL) - header->tier_change_time) < header->tier))
          return HH_STATUS_OKAY;
 
@@ -288,6 +307,19 @@ hh_status_t hh_i_asa_reform(void ** a, bool forced)
 
    I_REINHDR;
 
+   uint32_t bufcp2 = hh_i_asa_rup2f32(bufels) - 1;
+   unsigned char match_tier = HH_ASA_MIN_TIER;
+   for (cindex = HH_ASA_MIN_TIER; cindex <= HH_ASA_MAX_TIER; cindex++)
+   {
+      if (tiermasks[cindex] >= bufcp2) {
+         match_tier = cindex;
+         break;
+      }
+   }
+   
+   match_tier = __hh_max(match_tier, HH_ASA_MIN_TIER);
+   header->tier = match_tier;
+   
    for (cindex = 0; cindex < bufels; cindex++) {
       cur_el_hdr = (struct hh_asa_elhdr_s *)(telbuf + (I_TELS_HS * cindex));
       hh_i_asa_set(a, cur_el_hdr->id, cur_el_hdr + 1);

@@ -57,6 +57,8 @@ int main(void)
          printf("Spam elements could not be deleted!\n");
          return EXIT_FAILURE;
       }
+      
+      aa_egc(stuff);
    }
    
    aa_egc(stuff);
