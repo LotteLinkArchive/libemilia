@@ -6,6 +6,9 @@
 #include "../include/mt19937-64.h"
 #include "../include/util.h"
 
+/* Allows for switching between linear and random probing.
+ * TODO: Make random probing fully default to avoid clustering?
+ */
 #ifndef HH_I_ASA_NO_RANDOMP
 #   define HH_I_ASA_RANDOMP
 #endif
@@ -23,14 +26,7 @@ static const unsigned long tiermasks[]
       0x0007FFFF, 0x000FFFFF, 0x001FFFFF, 0x003FFFFF, 0x007FFFFF, 0x00FFFFFF,
       0x01FFFFFF, 0x03FFFFFF, 0x07FFFFFF, 0x0FFFFFFF, 0x1FFFFFFF, 0x3FFFFFFF,
       0x7FFFFFFF, 0xFFFFFFFF}; /* TM i31 UU */
-static const struct hh_asa_hdr_s hh_asa_defhr = {.tier = HH_ASA_MIN_TIER,
-                                                 .tier_change_time = 0,
-                                                 .highest_index    = 0,
-                                                 .element_size     = 0,
-                                                 .seed             = 0,
-                                                 .elements         = 0,
-                                                 .ld_elements      = 0,
-                                                 .ddepth           = 0};
+static const struct hh_asa_hdr_s hh_asa_defhr = {.tier = HH_ASA_MIN_TIER};
 
 static uint32_t    hh_i_asa_rup2f32(uint32_t v);
 static hh_status_t hh_i_asa_ensurei(void ** a, uint32_t high_as);
@@ -273,14 +269,14 @@ hh_status_t hh_i_asa_set(void ** a, hh_asa_id_t id, void * value)
    memcpy(cur_el_hdr + 1, value, header->element_size);
 
    if (searches > header->ddepth) header->ddepth = searches;
-   
+
    return HH_STATUS_OKAY;
 }
 
 hh_status_t hh_i_asa_reform(void ** a, bool forced)
 {
    /* TODO: Reform process can save memory with more dynamic allocations. */
-   
+
    I_PREPHDR;
 
    struct hh_asa_elhdr_s * cur_el_hdr;
@@ -289,6 +285,7 @@ hh_status_t hh_i_asa_reform(void ** a, bool forced)
 
    if ((signed char)header->tier - 1 < HH_ASA_MIN_TIER) return HH_STATUS_OKAY;
 
+   /* This is an overcomplicated way of checking if a table needs a downscale */
    if (!forced)
       if (((double)header->elements
            > ((3.0L / 4.0L) * (double)(tiermasks[tmax] + 1)))
@@ -296,11 +293,13 @@ hh_status_t hh_i_asa_reform(void ** a, bool forced)
           || header->elements == 0)
          return HH_STATUS_OKAY;
 
+   /* TODO: Don't allocate all at once here, perhaps... */
    char *   telbuf = malloc(header->elements * I_TELS_HS);
    uint32_t bufels = 0;
    uint32_t cindex;
    if (!telbuf) return HH_OUT_OF_MEMORY;
 
+   /* TODO: Iterate backwards instead and continuously realloc to smaller msz */
    for (cindex = 0; cindex <= header->highest_index; cindex++) {
       cur_el_hdr = hh_i_asa_getip(a, cindex);
 
@@ -315,6 +314,7 @@ hh_status_t hh_i_asa_reform(void ** a, bool forced)
 
    I_REINHDR;
 
+   /* This is how we determine the new tier. It's a bit of a mess. */
    uint32_t      bufcp2     = hh_i_asa_rup2f32(bufels) - 1;
    unsigned char match_tier = HH_ASA_MIN_TIER;
    for (cindex = HH_ASA_MIN_TIER; cindex <= HH_ASA_MAX_TIER; cindex++) {
@@ -399,6 +399,10 @@ static uint32_t hh_i_asa_probe(void **       a,
 
 static hh_status_t hh_i_asa_ensurei(void ** a, uint32_t high_as)
 {
+   /* Very lackluster memory saving technique - only allocate up to the highest
+    * occupied index in the table's main array.
+    */
+
    I_PREPHDR;
 
    uint32_t ohil   = header->highest_index + 1;
@@ -410,6 +414,7 @@ static hh_status_t hh_i_asa_ensurei(void ** a, uint32_t high_as)
    *a = realloc(*a, nwsize);
    if (!*a) return HH_OUT_OF_MEMORY;
 
+   /* We've changed the pointer, so reinitialize the header one. */
    I_REINHDR;
 
    header->highest_index = high_as;
@@ -420,6 +425,7 @@ static hh_status_t hh_i_asa_ensurei(void ** a, uint32_t high_as)
 
 static bool hh_i_asa_eq_id(hh_asa_id_t ida, hh_asa_id_t idb)
 {
+   /* Because memcmp just wasn't good enough for ya. */
    if (ida.h64s[0] != idb.h64s[0] || ida.h64s[1] != idb.h64s[1]) return false;
 
    return true;
@@ -444,6 +450,11 @@ static uint32_t hh_i_asa_freeslots(void ** a)
 {
    I_PREPHDR;
 
+   /* NOTE: This actually returns the number of fully unoccupied slots, not
+    * the amount of free slots. Well, I mean, English is a bit disputable
+    * here, there's no actual formal standards document for this particular
+    * variant of the hash table...
+    */
    return ((tiermasks[header->tier] + 1) - header->elements)
           - header->ld_elements;
 }
