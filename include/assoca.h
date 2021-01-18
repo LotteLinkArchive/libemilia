@@ -79,6 +79,8 @@ struct hh_asa_hdr_s {
    time_t        tier_change_time;
    uint32_t      highest_index;
    uint32_t      elements;
+   uint32_t      ld_elements;
+   uint32_t      ddepth;
    size_t        element_size;
    uint64_t      seed;
 

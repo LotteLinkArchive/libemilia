@@ -6,6 +6,10 @@
 #include "../include/mt19937-64.h"
 #include "../include/util.h"
 
+#ifndef HH_I_ASA_NO_RANDOMP
+#   define HH_I_ASA_RANDOMP
+#endif
+
 #define I_PREPHDR struct hh_asa_hdr_s * header = *a;
 #define I_REINHDR header = *a;
 #define I_TELS_HS (header->element_size + HH_ASA_EH_SZ)
@@ -23,13 +27,20 @@ static const struct hh_asa_hdr_s hh_asa_defhr = {.tier = HH_ASA_MIN_TIER,
                                                  .tier_change_time = 0,
                                                  .highest_index    = 0,
                                                  .element_size     = 0,
-                                                 .seed             = 0};
+                                                 .seed             = 0,
+                                                 .elements         = 0,
+                                                 .ld_elements      = 0,
+                                                 .ddepth           = 0};
 
 static uint32_t    hh_i_asa_rup2f32(uint32_t v);
-static uint32_t    hh_i_asa_probe(void ** a, uint32_t key, unsigned char tier);
 static hh_status_t hh_i_asa_ensurei(void ** a, uint32_t high_as);
 static bool        hh_i_asa_eq_id(hh_asa_id_t ida, hh_asa_id_t idb);
 static hh_status_t hh_i_asa_grow(void ** a);
+static uint32_t    hh_i_asa_freeslots(void ** a);
+static uint32_t    hh_i_asa_probe(void **       a,
+                                  uint32_t      key,
+                                  unsigned char tier,
+                                  uint32_t      depth);
 
 /* Public Functions --------------------------------------------------------- */
 
@@ -40,7 +51,7 @@ hh_asa_id_t hh_i_asa_hrange(void ** a, void * key, size_t amt)
     * element has a different hash for every hash table, improving security by
     * preventing (or mitigating) forced collisions.
     */
-   
+
    I_PREPHDR; /* Header preparation - Allow direct access to the table hdr. */
 
    XXH128_hash_t xhash
@@ -67,7 +78,7 @@ hh_status_t hh_i_asa_init(void ** a, size_t el_size)
    memset(((struct hh_asa_hdr_s *)*a) + 1, 0, (el_size + HH_ASA_EH_SZ));
 
    I_PREPHDR;
-   
+
    header->element_size = el_size;
    header->seed         = hh_mt_genrand64_int64(&hh_mt19937_global);
 
@@ -98,7 +109,7 @@ void * hh_i_asa_getip(void ** a, uint32_t i)
    /* This function returns a pointer to the element header at the given index
     * and returns NULL if the given index exceeds the highest available index.
     */
-   
+
    I_PREPHDR;
 
    char * b = *a;
@@ -115,16 +126,17 @@ int32_t hh_i_asa_lookup(void ** a, hh_asa_id_t id)
    uint32_t                probe;
    struct hh_asa_elhdr_s * cur_el_hdr;
    signed char             tier;
+   uint32_t                searches;
 
    for (tier = header->tier; tier >= HH_ASA_MIN_TIER; tier--) {
       /* The initial probe is always just the full hash but masked with the
        * tier mask. Only the low 64 bits of the full hash are ever used. The
        * rest are used for the comparison process.
        */
-      
-      probe             = id.h64s[0] & tiermasks[(unsigned char)tier];
-      uint32_t tiprob   = probe;
-      uint32_t searches = 0;
+
+      probe           = id.h64s[0] & tiermasks[(unsigned char)tier];
+      uint32_t tiprob = probe;
+      searches        = 0;
 
       for (;;) {
          cur_el_hdr = hh_i_asa_getip(a, probe);
@@ -132,29 +144,30 @@ int32_t hh_i_asa_lookup(void ** a, hh_asa_id_t id)
 
          /* If not occupied, return -1 */
          if (!(cur_el_hdr->flags & 0x1)) break;
-         
+
          /* Compare the full hashes at every probe unless unoccupied */
          bool comparison = hh_i_asa_eq_id(id, cur_el_hdr->id);
-         
+
          /* & 0x2 -> Is it lazy deleted? */
          if (cur_el_hdr->flags & 0x2) {
             /* Lazy deleted cell detected, may move into this later! */
             if (first_lazydel_idx < 0) first_lazydel_idx = probe;
-            
+
             /* If comparison matches, the element we're looking for has been
              * deleted, so ignore it and return -1. */
             if (comparison) break;
          }
-         
+
          /* If occupied, not deleted and comparison matches, we found the
           * element we're looking for! */
          if (comparison) goto i_lookup_found;
-         
+
          /* Check if the first element has no collisions, if not, return -1 */
          if ((!(cur_el_hdr->flags & 0x4)) && (probe == tiprob)) break;
 
          searches++;
 
+         if (searches > header->ddepth) break;
 #ifndef HH_I_ASA_RANDOMP
          /* https://www.youtube.com/watch?v=Tk5cDyvhJEE
           * Prevents infinite searching on a fully loaded linear probed table.
@@ -164,7 +177,7 @@ int32_t hh_i_asa_lookup(void ** a, hh_asa_id_t id)
 
          /* Next probes are all handled by a function which can do whatever
           * it wants to the previous probe. */
-         probe = hh_i_asa_probe(a, probe, tier);
+         probe = hh_i_asa_probe(a, probe, tier, searches);
       }
 
       first_lazydel_idx = -1;
@@ -179,17 +192,19 @@ i_lookup_found:
        * - We found a lazy deleted cell earlier too.
        * We can move the found element into the lazy deleted cell, helping
        * reduce the load factor if lazy deletion is employed.
-       * 
+       *
        * TODO: Find other ways to reduce lazy deletion without reforming.
        */
-      
+
       struct hh_asa_elhdr_s * t_el_hdr
-         = hh_i_asa_getip(a, hh_i_asa_probe(a, probe, tier));
+         = hh_i_asa_getip(a, hh_i_asa_probe(a, probe, tier, searches + 1));
       if (t_el_hdr)
          if (t_el_hdr->flags & 0x1) return probe;
 
       memcpy(hh_i_asa_getip(a, first_lazydel_idx), cur_el_hdr, I_TELS_HS);
       memset(cur_el_hdr, 0, I_TELS_HS);
+
+      header->ld_elements--;
 
       return first_lazydel_idx;
    }
@@ -201,6 +216,10 @@ hh_status_t hh_i_asa_set(void ** a, hh_asa_id_t id, void * value)
 {
    I_PREPHDR;
 
+   /* Execute the grow test to see if another tier is needed. */
+   hh_status_t gstat = hh_i_asa_grow(a);
+   if (gstat != HH_STATUS_OKAY) return gstat;
+
    /* If the element already exists, set the value (Python-style) */
    int32_t ilookup = hh_i_asa_lookup(a, id);
    if (ilookup >= 0) {
@@ -210,14 +229,11 @@ hh_status_t hh_i_asa_set(void ** a, hh_asa_id_t id, void * value)
       return HH_STATUS_OKAY;
    }
 
-   /* Execute the grow test to see if another tier is needed. */
-   hh_status_t gstat = hh_i_asa_grow(a);
-   if (gstat != HH_STATUS_OKAY) return gstat;
-
    uint32_t                probe   = id.h64s[0] & tiermasks[header->tier];
    uint32_t                tiprobe = probe;
    struct hh_asa_elhdr_s * cur_el_hdr;
-   uint8_t                 flagset = 0;
+   uint8_t                 flagset  = 0;
+   uint32_t                searches = 0;
 
    /* It miiight be possible for this to loop forever, maybe. No, actually, I
     * don't think it will. Maybe. */
@@ -231,8 +247,10 @@ hh_status_t hh_i_asa_set(void ** a, hh_asa_id_t id, void * value)
       cur_el_hdr = hh_i_asa_getip(a, probe);
 
       if (cur_el_hdr->flags & 0x2) {
-         flagset
-            = cur_el_hdr->flags ^ 0x2; /* NOTE: Copies ALL other flags if LD! */
+         /* NOTE: Copies ALL other flags if LD! */
+         flagset = cur_el_hdr->flags ^ 0x2;
+
+         header->ld_elements--;
          goto i_insert_lda;
       }
       if (!(cur_el_hdr->flags & 0x1)) {
@@ -243,7 +261,8 @@ hh_status_t hh_i_asa_set(void ** a, hh_asa_id_t id, void * value)
 
       if (probe == tiprobe) cur_el_hdr->flags |= 0x4;
 
-      probe   = hh_i_asa_probe(a, probe, header->tier);
+      searches++;
+      probe   = hh_i_asa_probe(a, probe, header->tier, searches);
       flagset = 0;
    }
 
@@ -253,11 +272,15 @@ hh_status_t hh_i_asa_set(void ** a, hh_asa_id_t id, void * value)
 
    memcpy(cur_el_hdr + 1, value, header->element_size);
 
+   if (searches > header->ddepth) header->ddepth = searches;
+   
    return HH_STATUS_OKAY;
 }
 
 hh_status_t hh_i_asa_reform(void ** a, bool forced)
 {
+   /* TODO: Reform process can save memory with more dynamic allocations. */
+   
    I_PREPHDR;
 
    struct hh_asa_elhdr_s * cur_el_hdr;
@@ -326,18 +349,17 @@ hh_status_t hh_i_asa_delete(void ** a, hh_asa_id_t id)
 
    cur_el_hdr->flags |= 0x2;
    header->elements--;
+   header->ld_elements++;
 
 #ifdef HH_I_ASA_RANDOMP
-   /* TODO: Find another way to perform random probe deletions safely that
-    * doesn't involve reforming the entire hash table every time an element
-    * is deleted. Consider methods such as forced reformation ONLY when the
-    * amount of lazy deleted cells exceeds the amount of free cells.
+   /* TODO: Is this needed now after ddepth was introduced?
+    * Should it apply to both linear and random probing instead?
     */
-   hh_i_asa_reform(a, true);
+   hh_i_asa_reform(a, (header->ld_elements > hh_i_asa_freeslots(a)));
 #else
    hh_i_asa_reform(a, false);
 #endif
-   
+
    I_REINHDR;
 
    return HH_STATUS_OKAY;
@@ -360,13 +382,18 @@ static uint32_t hh_i_asa_rup2f32(uint32_t v)
    return v;
 }
 
-static uint32_t hh_i_asa_probe(void ** a, uint32_t key, unsigned char tier)
+static uint32_t hh_i_asa_probe(void **       a,
+                               uint32_t      key,
+                               unsigned char tier,
+                               uint32_t      depth)
 {
-   key++;
 #ifdef HH_I_ASA_RANDOMP
+   I_PREPHDR;
+
+   key += depth;
    return (XXH32(&key, sizeof(key), header->seed)) & tiermasks[tier];
 #else
-   return key & tiermasks[tier];
+   return (key + 1) & tiermasks[tier];
 #endif
 }
 
@@ -411,4 +438,12 @@ static hh_status_t hh_i_asa_grow(void ** a)
    header->tier_change_time = time(NULL);
 
    return HH_STATUS_OKAY;
+}
+
+static uint32_t hh_i_asa_freeslots(void ** a)
+{
+   I_PREPHDR;
+
+   return ((tiermasks[header->tier] + 1) - header->elements)
+          - header->ld_elements;
 }
