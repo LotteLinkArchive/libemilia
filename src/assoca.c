@@ -46,6 +46,8 @@ hh_asa_id_t hh_i_asa_hrange(void ** a, void * key, size_t amt)
     * A seed (randomized on hash table init) is used to ensure that each
     * element has a different hash for every hash table, improving security by
     * preventing (or mitigating) forced collisions.
+    * 
+    * TODO: Use a more secure (and internal, preferably) hashing algorithm.
     */
 
    I_PREPHDR; /* Header preparation - Allow direct access to the table hdr. */
