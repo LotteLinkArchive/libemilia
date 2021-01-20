@@ -32,7 +32,6 @@ static uint32_t    hh_i_asa_rup2f32(uint32_t v);
 static hh_status_t hh_i_asa_ensurei(void ** a, uint32_t high_as);
 static bool        hh_i_asa_eq_id(hh_asa_id_t ida, hh_asa_id_t idb);
 static hh_status_t hh_i_asa_grow(void ** a);
-static uint32_t    hh_i_asa_freeslots(void ** a);
 static uint32_t    hh_i_asa_probe(void **       a,
                                   uint32_t      key,
                                   unsigned char tier,
@@ -46,7 +45,7 @@ hh_asa_id_t hh_i_asa_hrange(void ** a, void * key, size_t amt)
     * A seed (randomized on hash table init) is used to ensure that each
     * element has a different hash for every hash table, improving security by
     * preventing (or mitigating) forced collisions.
-    * 
+    *
     * TODO: Use a more secure (and internal, preferably) hashing algorithm.
     */
 
@@ -439,17 +438,4 @@ static hh_status_t hh_i_asa_grow(void ** a)
    header->tier_change_time = time(NULL);
 
    return HH_STATUS_OKAY;
-}
-
-static uint32_t hh_i_asa_freeslots(void ** a)
-{
-   I_PREPHDR;
-
-   /* NOTE: This actually returns the number of fully unoccupied slots, not
-    * the amount of free slots. Well, I mean, English is a bit disputable
-    * here, there's no actual formal standards document for this particular
-    * variant of the hash table...
-    */
-   return ((tiermasks[header->tier] + 1) - header->elements)
-          - header->ld_elements;
 }
