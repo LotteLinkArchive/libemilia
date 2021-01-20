@@ -353,14 +353,7 @@ hh_status_t hh_i_asa_delete(void ** a, hh_asa_id_t id)
    header->elements--;
    header->ld_elements++;
 
-#ifdef HH_I_ASA_RANDOMP
-   /* TODO: Is this needed now after ddepth was introduced?
-    * Should it apply to both linear and random probing instead?
-    */
-   hh_i_asa_reform(a, (header->ld_elements > hh_i_asa_freeslots(a)));
-#else
    hh_i_asa_reform(a, false);
-#endif
 
    I_REINHDR;
 
