@@ -17,15 +17,10 @@
 #define I_REINHDR header = *a;
 #define I_TELS_HS (header->element_size + HH_ASA_EH_SZ)
 
+#define I_TIERCLM(x) (0xFFFFFFFF >> (31 - (x))) /* TM i31 UU */
+
 /* Static Declarations & Constant Variables --------------------------------- */
 
-static const unsigned long tiermasks[]
-   = {0x00000001, 0x00000003, 0x00000007, 0x0000000F, 0x0000001F, 0x0000003F,
-      0x0000007F, 0x000000FF, 0x000001FF, 0x000003FF, 0x000007FF, 0x00000FFF,
-      0x00001FFF, 0x00003FFF, 0x00007FFF, 0x0000FFFF, 0x0001FFFF, 0x0003FFFF,
-      0x0007FFFF, 0x000FFFFF, 0x001FFFFF, 0x003FFFFF, 0x007FFFFF, 0x00FFFFFF,
-      0x01FFFFFF, 0x03FFFFFF, 0x07FFFFFF, 0x0FFFFFFF, 0x1FFFFFFF, 0x3FFFFFFF,
-      0x7FFFFFFF, 0xFFFFFFFF}; /* TM i31 UU */
 static const struct hh_asa_hdr_s hh_asa_defhr = {.tier = HH_ASA_MIN_TIER};
 
 static uint32_t    hh_i_asa_rup2f32(uint32_t v);
@@ -131,7 +126,7 @@ int32_t hh_i_asa_lookup(void ** a, hh_asa_id_t id)
        * rest are used for the comparison process.
        */
 
-      probe           = id.h64s[0] & tiermasks[(unsigned char)tier];
+      probe           = id.h64s[0] & I_TIERCLM((unsigned char)tier);
       uint32_t tiprob = probe;
       searches        = 0;
 
@@ -169,7 +164,7 @@ int32_t hh_i_asa_lookup(void ** a, hh_asa_id_t id)
          /* https://www.youtube.com/watch?v=Tk5cDyvhJEE
           * Prevents infinite searching on a fully loaded linear probed table.
           */
-         if (searches > tiermasks[(unsigned char)tier]) break;
+         if (searches > I_TIERCLM((unsigned char)tier)) break;
 #endif
 
          /* Next probes are all handled by a function which can do whatever
@@ -226,7 +221,7 @@ hh_status_t hh_i_asa_set(void ** a, hh_asa_id_t id, void * value)
       return HH_STATUS_OKAY;
    }
 
-   uint32_t                probe   = id.h64s[0] & tiermasks[header->tier];
+   uint32_t                probe   = id.h64s[0] & I_TIERCLM(header->tier);
    uint32_t                tiprobe = probe;
    struct hh_asa_elhdr_s * cur_el_hdr;
    uint8_t                 flagset  = 0;
@@ -289,7 +284,7 @@ hh_status_t hh_i_asa_reform(void ** a, bool forced)
    /* This is an overcomplicated way of checking if a table needs a downscale */
    if (!forced)
       if (((double)header->elements
-           > ((3.0L / 4.0L) * (double)(tiermasks[tmax] + 1)))
+           > ((3.0L / 4.0L) * (double)(I_TIERCLM(tmax) + 1)))
           || ((time(NULL) - header->tier_change_time) < header->tier)
           || header->elements == 0)
          return HH_STATUS_OKAY;
@@ -325,7 +320,7 @@ hh_status_t hh_i_asa_reform(void ** a, bool forced)
    uint32_t      bufcp2     = hh_i_asa_rup2f32(bufels) - 1;
    unsigned char match_tier = HH_ASA_MIN_TIER;
    for (cindex = HH_ASA_MIN_TIER; cindex <= HH_ASA_MAX_TIER; cindex++) {
-      if (tiermasks[cindex] == bufcp2) {
+      if (I_TIERCLM(cindex) == bufcp2) {
          match_tier = cindex;
          break;
       }
@@ -338,7 +333,7 @@ hh_status_t hh_i_asa_reform(void ** a, bool forced)
       hh_i_asa_set(a, cur_el_hdr->id, cur_el_hdr + 1);
 
       I_REINHDR;
-      
+
       telbuf = realloc(telbuf, (cindex + 1) * I_TELS_HS);
       if (!telbuf) return HH_OUT_OF_MEMORY;
    }
@@ -394,9 +389,9 @@ static uint32_t hh_i_asa_probe(void **       a,
    I_PREPHDR;
 
    key += depth;
-   return (XXH32(&key, sizeof(key), header->seed)) & tiermasks[tier];
+   return (XXH32(&key, sizeof(key), header->seed)) & I_TIERCLM(tier);
 #else
-   return (key + 1) & tiermasks[tier];
+   return (key + 1) & I_TIERCLM(tier);
 #endif
 }
 
@@ -439,7 +434,7 @@ static hh_status_t hh_i_asa_grow(void ** a)
    I_PREPHDR;
 
    if ((double)header->elements
-       <= ((3.0L / 4.0L) * (double)(tiermasks[header->tier] + 1)))
+       <= ((3.0L / 4.0L) * (double)(I_TIERCLM(header->tier) + 1)))
       return HH_STATUS_OKAY;
    if (header->tier >= HH_ASA_MAX_TIER) return HH_INT_OVERFLOW;
 
@@ -448,4 +443,3 @@ static hh_status_t hh_i_asa_grow(void ** a)
 
    return HH_STATUS_OKAY;
 }
-
