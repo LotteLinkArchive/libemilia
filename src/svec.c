@@ -2,12 +2,12 @@
 
 hh_status_t hh_i_dyn_set_els(void ** a, size_t n, size_t e)
 {
-   void * x = ((size_t *)realloc(__hh_i_dyn_raw(*a), __hh_i_dyn_trs(n, e))) + 2;
+   void * x = ((size_t *)realloc(__hh_i_dyn_rw(*a), __hh_i_dyn_trs(n, e))) + 2;
    if (!x) return HH_OUT_OF_MEMORY;
 
-   *a                    = x;
-   __hh_i_dyn_raw(*a)[0] = n;
-   __hh_i_dyn_raw(*a)[1] = e;
+   *a                   = x;
+   __hh_i_dyn_rw(*a)[0] = n;
+   __hh_i_dyn_rw(*a)[1] = e;
 
    return HH_STATUS_OKAY;
 }
@@ -20,7 +20,7 @@ hh_status_t hh_i_dyn_ins(void ** a, size_t i, void * e)
    if (stat != HH_STATUS_OKAY) return stat;
 
    char * aba   = ((char *)*a);
-   size_t els   = __hh_i_dyn_s(__hh_i_dyn_raw(*a));
+   size_t els   = __hh_i_dyn_s(__hh_i_dyn_rw(*a));
    char * dxsrc = aba + (i * els);
    size_t rms   = ((__hh_dyn_count(*a) - 1) - i) * els;
 
@@ -35,7 +35,7 @@ hh_status_t hh_i_dyn_del(void ** a, size_t i)
    if (i >= __hh_dyn_count(*a)) return HH_OUT_OF_BOUNDS;
 
    char * aba   = ((char *)*a);
-   size_t els   = __hh_i_dyn_s(__hh_i_dyn_raw(*a));
+   size_t els   = __hh_i_dyn_s(__hh_i_dyn_rw(*a));
    char * dxsrc = aba + (i * els);
    size_t rms   = (__hh_dyn_count(*a) - (i + 1)) * els;
    memmove(dxsrc, dxsrc + els, rms);
