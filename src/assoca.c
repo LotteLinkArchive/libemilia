@@ -271,8 +271,6 @@ hh_status_t hh_i_asa_set(void ** a, hh_asa_id_t id, void * value)
 
 hh_status_t hh_i_asa_reform(void ** a, bool forced)
 {
-   /* TODO: Reform process can save memory with more dynamic allocations. */
-
    I_PREPHDR;
 
    struct hh_asa_elhdr_s * cur_el_hdr;
