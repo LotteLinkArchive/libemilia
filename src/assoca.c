@@ -268,6 +268,11 @@ hh_status_t hh_i_asa_set(void ** a, hh_asa_id_t id, void * value)
 
 hh_status_t hh_i_asa_reform(void ** a, bool forced)
 {
+   /* TODO: This is a comically slow function that is in dire need of
+    * optimization, research and development. It's probably the only part of
+    * this implementation that kind of sucks.
+    */
+   
    I_PREPHDR;
 
    struct hh_asa_elhdr_s * cur_el_hdr;
@@ -381,9 +386,8 @@ static uint32_t hh_i_asa_probe(void **       a,
 {
 #ifdef HH_I_ASA_RANDOMP
    I_PREPHDR;
-
-   key += depth;
-   return (XXH32(&key, sizeof(key), header->seed)) & I_TIERCLM(tier);
+   
+   return (XXH32(&key, sizeof(key), header->seed ^ depth)) & I_TIERCLM(tier);
 #else
    return (key + 1) & I_TIERCLM(tier);
 #endif
