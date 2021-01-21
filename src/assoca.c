@@ -196,8 +196,6 @@ i_lookup_found:
       memcpy(hh_i_asa_getip(a, first_lazydel_idx), cur_el_hdr, I_TELS_HS);
       memset(cur_el_hdr, 0, I_TELS_HS);
 
-      header->ld_elements--;
-
       return first_lazydel_idx;
    }
 
@@ -242,7 +240,6 @@ hh_status_t hh_i_asa_set(void ** a, hh_asa_id_t id, void * value)
          /* NOTE: Copies ALL other flags if LD! */
          flagset = cur_el_hdr->flags ^ 0x2;
 
-         header->ld_elements--;
          goto i_insert_lda;
       }
       if (!(cur_el_hdr->flags & 0x1)) {
@@ -352,7 +349,6 @@ hh_status_t hh_i_asa_delete(void ** a, hh_asa_id_t id)
 
    cur_el_hdr->flags |= 0x2;
    header->elements--;
-   header->ld_elements++;
 
    hh_i_asa_reform(a, false);
 
