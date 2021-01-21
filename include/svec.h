@@ -8,17 +8,17 @@
 #include "status.h"
 
 /* TIP: Define HH_DYN_NO_SHORTHAND to disable the simplified interface.
- * da_make    - Create a dynamic array of the specified type.
- * da_free    - Free a dynamic array, deallocating all of its memory includng
- * the metadata. da_count   - Count the amount of elements in a dynamic array.
+ * da_make - Create a dynamic array of the specified type.
+ * da_free - Free a dynamic array, deallocating all of its memory includng
+ * the metadata. da_count - Count the amount of elements in a dynamic array.
  * da_lastidx - Return the index of the last element in the dynamic array.
- * da_last    - Return the last element in the dynamic array with a default
- * value if none. da_empty   - Empty the dynamic array. Deallocates and removes
- * all elements, except meta. da_grow    - Grow the dynamic array by a specified
- * amount of elements. da_shrink  - Shrink the dynamic array by the specified
- * amount of elements. da_push    - Push a new element onto the end of the
- * dynamic array. da_delete  - Delete an element in the dynamic array by the
- * given index. da_insert  - Insert an element into the dynamic array at the
+ * da_last - Return the last element in the dynamic array with a default
+ * value if none. da_empty - Empty the dynamic array. Deallocates and removes
+ * all elements, except meta. da_grow - Grow the dynamic array by a specified
+ * amount of elements. da_shrink - Shrink the dynamic array by the specified
+ * amount of elements. da_push - Push a new element onto the end of the
+ * dynamic array. da_delete - Delete an element in the dynamic array by the
+ * given index. da_insert - Insert an element into the dynamic array at the
  * given index. da_setsize - Set the amount of elements in the dynamic array.
  * da_lastptr - Get void pointer to the last element in the dynamic array, NULL
  * if empty. WARN: da_make, da_insert, da_last and da_push must retain the same
@@ -41,8 +41,7 @@
 #   define da_lastptr __hh_dyn_last_ptr
 #endif
 
-/* ----------- ---------------- IF POSSIBLE, PLEASE USE THE SIMPLIFIED INTERFACE
- * ABOVE! ---------------- ----------- */
+/* IF POSSIBLE, PLEASE USE THE SIMPLIFIED INTERFACE ABOVE! */
 
 #define HH_DYN_BASIS         NULL
 #define __hh_dyn(name, type) type * name = HH_DYN_BASIS
@@ -106,20 +105,19 @@
 #define __hh_dyn_lasttt(a, d) \
    (__hh_dyn_count((a)) > 0 ? __hh_i_dyn_ecl((a), __typeof__((d))) : (d))
 
-/* ---------------- ---------------- !!! EVERYTHING BELOW THIS LINE IS PRIVATE
- * !!! ---------------- ---------------- */
+/* EVERYTHING BELOW THIS LINE IS PRIVATE */
 
 #define __hh_i_dyn_raw(a) \
-   ((a) ? ((size_t *)(void *)(a)) - 2 : NULL) /* RET: r (raw array)         */
+   ((a) ? ((size_t *)(void *)(a)) - 2 : NULL) /* RET: r (raw array) */
 #define __hh_i_dyn_c(r) \
-   ((r) ? (((size_t *)(r))[0]) : 0) /* RET: c (element count)     */
+   ((r) ? (((size_t *)(r))[0]) : 0) /* RET: c (element count) */
 #define __hh_i_dyn_s(r) \
-   ((r) ? (((size_t *)(r))[1]) : 0) /* RET: s (element size)      */
+   ((r) ? (((size_t *)(r))[1]) : 0) /* RET: s (element size) */
 #define __hh_i_dyn_trs(c, s) \
-   ((sizeof(size_t) * 2) + ((c) * (s))) /* RET: t (total raw size)    */
+   ((sizeof(size_t) * 2) + ((c) * (s))) /* RET: t (total raw size) */
 #define __hh_i_dyn_sas(a)                 \
    ((a) ? __hh_i_dyn_s(__hh_i_dyn_raw(a)) \
-        : sizeof(*(a))) /* RET: s (TA! element size)  */
+        : sizeof(*(a))) /* RET: s (TA! element size) */
 #define __hh_i_dyn_eci(a)       ((char(*)[__hh_i_dyn_s(__hh_i_dyn_raw((a)))])(a))
 #define __hh_i_dyn_ecg(a, i)    ((void *)(&(__hh_i_dyn_eci((a))[(i)])))
 #define __hh_i_dyn_ect(a, i, t) (((t *)(__hh_i_dyn_ecg((a), (i))))[0])

@@ -1,7 +1,7 @@
-/* ---------------------------------------------------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
    THIS IS A MODIFICATION OF AN IMPLEMENTATION PROVIDED BY TAKUJI NISHIMRU AND
-MAKOTO MATSUMOTO. THEIR ORIGINAL LICENSE IS PROVIDED BELOW.
-------------------------------------------------------------------------------------------------------------------------
+   MAKOTO MATSUMOTO. THEIR ORIGINAL LICENSE IS PROVIDED BELOW.
+--------------------------------------------------------------------------------
    A C-program for MT19937-64 (2014/2/23 version).
    Coded by Takuji Nishimura and Makoto Matsumoto.
 
@@ -33,7 +33,7 @@ MAKOTO MATSUMOTO. THEIR ORIGINAL LICENSE IS PROVIDED BELOW.
    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
    A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER
-OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
    EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
    PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
    PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
@@ -54,7 +54,7 @@ OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
    Any feedback is very welcome.
    http://www.math.hiroshima-u.ac.jp/~m-mat/MT/emt.html
    email: m-mat @ math.sci.hiroshima-u.ac.jp (remove spaces)
----------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 */
 
 #include "../include/mt19937-64.h"
