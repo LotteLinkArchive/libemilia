@@ -300,7 +300,7 @@ hh_status_t hh_i_asa_reform(void ** a, bool forced)
          bufels++;
       }
 
-      *a = realloc(*a, HH_ASA_HR_SZ + ((cindex + 1) * I_TELS_HS));
+      *a = realloc(*a, HH_ASA_HR_SZ + (cindex * I_TELS_HS));
       if (!*a) return HH_OUT_OF_MEMORY;
 
       I_REINHDR;
