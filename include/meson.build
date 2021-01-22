@@ -7,6 +7,8 @@ hexhive_headers = [
 	'mt19937-64.h',
 	'util.h',
 	'entropygen.h',
-	'assoca.h'
+	'assoca.h',
+	'buf.h',
+	'bloom.h'
 ]
 install_headers(hexhive_headers, subdir : 'hexhive')
