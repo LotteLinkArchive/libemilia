@@ -13,6 +13,10 @@
 #   define HH_I_ASA_RANDOMP
 #endif
 
+#define HH_ASA_MIN_TIER 2
+#define HH_ASA_MAX_TIER 30
+#define HH_ASA_BLOOM_SZ 4096
+
 #define I_PREPHDR struct hh_asa_hdr_s * header = *a;
 #define I_REINHDR header = *a;
 #define I_TELS_HS (header->element_size + HH_ASA_EH_SZ)
@@ -74,24 +78,39 @@ hh_status_t hh_i_asa_init(void ** a, size_t el_size)
    header->element_size = el_size;
    header->seed         = hh_mt_genrand64_int64(&hh_mt19937_global);
 
-   return HH_STATUS_OKAY;
+   return hh_bloom_mk(&header->bloom, HH_ASA_BLOOM_SZ);
+}
+
+void hh_i_asa_destroy(void ** a)
+{
+   if (!*a) return;
+   
+   I_PREPHDR;
+   
+   hh_bloom_free(&header->bloom);
+   
+   free(*a);
+   
+   *a = NULL;
 }
 
 hh_status_t hh_i_asa_empty(void ** a)
 {
    I_PREPHDR;
 
-   /* Reinitialize the hash table while keeping the seed and element size */
-   size_t   tes  = header->element_size;
-   uint64_t seed = header->seed;
+   hh_bloom_free(&header->bloom);
 
-   hh_status_t s = hh_i_asa_init(
-      a, tes); /* Depends on init usage of realloc instead of malloc */
+   /* Reinitialize the hash table while keeping the seed and element size */
+   size_t     tes   = header->element_size;
+   uint64_t   seed  = header->seed;
+
+   /* Depends on init usage of realloc instead of malloc */
+   hh_status_t s = hh_i_asa_init(a, tes);
    if (s != HH_STATUS_OKAY) return s;
 
    /* Keep the seed the same, just in case/to prevent excess re-hashing */
-   header       = *a;
-   header->seed = seed;
+   header        = *a;
+   header->seed  = seed;
 
    return HH_STATUS_OKAY;
 }
@@ -114,6 +133,8 @@ int32_t hh_i_asa_lookup(void ** a, hh_asa_id_t id)
 {
    I_PREPHDR;
 
+   if (!hh_bloom_in(&header->bloom, &id, sizeof(id))) return -1;
+   
    int32_t                 first_lazydel_idx = -1;
    uint32_t                probe;
    struct hh_asa_elhdr_s * cur_el_hdr;
@@ -218,6 +239,8 @@ hh_status_t hh_i_asa_set(void ** a, hh_asa_id_t id, void * value)
              header->element_size);
       return HH_STATUS_OKAY;
    }
+   
+   hh_bloom_add(&header->bloom, &id, sizeof(id));
 
    uint32_t                probe   = id.h64s[0] & I_TIERCLM(header->tier);
    uint32_t                tiprobe = probe;

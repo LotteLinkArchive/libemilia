@@ -5,6 +5,7 @@
 #include <string.h>
 #include <time.h>
 
+#include "bloom.h"
 #include "gdefs.h"
 #include "status.h"
 
@@ -34,7 +35,7 @@
       hh_i_asa_init((__hh_i_asa_vcast(__84tmp)), sizeof(type)); \
       __84tmp;                                                  \
    })
-#define __hh_asa_destroy(m)    ((m) ? (free(m), 0) : 0)
+#define __hh_asa_destroy(m)    (hh_i_asa_destroy((__hh_i_asa_vcast((m)))))
 #define __hh_asa_count(m)      ((__hh_i_asa_hcast((m)))->elements)
 #define __hh_asa_getidx(m, id) (hh_i_asa_lookup((__hh_i_asa_vcast((m))), (id)))
 #define __hh_asa_getid(m, idx) \
@@ -82,6 +83,7 @@ struct hh_asa_hdr_s {
    uint32_t      ddepth;
    size_t        element_size;
    uint64_t      seed;
+   hh_bloom_t    bloom;
 
    /* TODO: Support bloom filter */
 };
@@ -103,11 +105,9 @@ struct hh_asa_elhdr_s {
 #define HH_ASA_HR_SZ sizeof(struct hh_asa_hdr_s)
 #define HH_ASA_EH_SZ sizeof(struct hh_asa_elhdr_s)
 
-#define HH_ASA_MIN_TIER 2
-#define HH_ASA_MAX_TIER 30
-
 HH_EXTERN hh_asa_id_t hh_i_asa_hrange(void ** a, const void * key, size_t amt);
 HH_EXTERN hh_status_t hh_i_asa_init(void ** a, size_t el_size);
+HH_EXTERN void        hh_i_asa_destroy(void ** a);
 HH_EXTERN hh_status_t hh_i_asa_empty(void ** a);
 HH_EXTERN void *      hh_i_asa_getip(void ** a, uint32_t i);
 HH_EXTERN int32_t     hh_i_asa_lookup(void ** a, hh_asa_id_t id);
