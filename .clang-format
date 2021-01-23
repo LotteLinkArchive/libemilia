@@ -29,7 +29,7 @@ ColumnLimit: '80'
 ContinuationIndentWidth: '3'
 DerivePointerAlignment: 'false'
 IncludeBlocks: Regroup
-IndentCaseLabels: 'true'
+IndentCaseLabels: 'false'
 IndentPPDirectives: AfterHash
 IndentWidth: '3'
 IndentWrappedFunctionNames: 'false'

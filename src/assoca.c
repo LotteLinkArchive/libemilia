@@ -1,5 +1,5 @@
 /* /---------------------------------------------------------------------------\
- *                                          !!!!!.                     
+ *                                          !!!!!.
  *                                          !"3$(!+&!                    P A
  *                        !"(!                 !B!!$+                    A S
  *                        "####"`    '!+"""+(("#*(#"!-  !##'             N S
@@ -11,24 +11,24 @@
  *          !Q`.!...!%3(I"...........!#!.................$+!!!!-.!#*     I I
  *      `'. 'B`!!...3$j%!3#"!'...!!"3Jz#(..............'3!..``.""..#!    C V
  *     "$""%%#(!!...!#(""!t3!"""$!!%%"+I$$!........'!j#&....!("%%'.!#    A E
- *   .#(..''..'!%!..`#"!(&#'...++'''''''!!%%"!"I""##%u#............`$! 
+ *   .#(..''..'!%!..`#"!(&#'...++'''''''!!%%"!"I""##%u#............`$!
  *  !#"'.!#+...!$-.'%!..!%$!..`#$$%3""!!!!%!'!!!!!!!!"#.............$!     A
  * 'B&!.."%++"j(..'#!...u!j#!.!#.$#u""J$#BB#+!!'''''''!J!!!!'!!!""""(      R
  * $#!!'..........%!!...$!*#$t$##+((!!!((!##($$B#$zJu"j!'!$!!!"#           R
  * t#!!!..........#.(!!!$*!!$!(*#(!!(((!'!"$"##u(!(("3$Buj!...!#           A
  *  "#$"!!........"3!I(!'!"("(!!!$!!!!!!!!$"!$I!((!!(!!$$$..."#'           Y
- *    !"#B#%"++((!."$!$!....!$"!!*3"("3j33!''"#!!!!!!!((B3*$#!         
- *     $"!.......!I'!#!...!j!.`!!.'""!!'''''!J++!'!!.!"#"'"#!              
- *    !+..!z!!..!"3'!#`...!(!!'.#+..!3''''''''''!"+""j##"I!%"              
- *    $!..."#"!!!..-#I'......-!!!...!%''''''''''''''!#!.`"!.#!  
- *    #3..........'$"!j(-...........#!'''!*+!''''!"(!!!!("'.!#     
+ *    !"#B#%"++((!."$!$!....!$"!!*3"("3j33!''"#!!!!!!!((B3*$#!
+ *     $"!.......!I'!#!...!j!.`!!.'""!!'''''!J++!'!!.!"#"'"#!
+ *    !+..!z!!..!"3'!#`...!(!!'.#+..!3''''''''''!"+""j##"I!%"
+ *    $!..."#"!!!..-#I'......-!!!...!%''''''''''''''!#!.`"!.#!
+ *    #3..........'$"!j(-...........#!'''!*+!''''!"(!!!!("'.!#
  *    '#".......'!!"%3"!""!'......!#W#%"!!!!("%#u$(j'.......!@`
  *     `$#!!!!!!!!!!!!##$$%%""+I$#z!B"+%#@M!'.`.#I3"I!......&B
  *       !#I!!!!!!!"$#####$"""!!`*###"+++"BI*!!` "#%#%$J"j$#$!      ALPHA
  *         (#%""3%$"!!!!`    '!j######j++*######z `!!!!!!'`
  *  ---------------------------------------------------------------------------
  *   This is a very complicated associative array implementation, created as a
- *   component of HexHive. To interface with it, you will absolutely need the 
+ *   component of HexHive. To interface with it, you will absolutely need the
  *   provided header file (assoca.h), as it contains various macros intended
  *   to massively simplify the process of using this data structure.
  *  ---------------------------------------------------------------------------
@@ -125,13 +125,13 @@ hh_status_t hh_i_asa_init(void ** a, size_t el_size)
 void hh_i_asa_destroy(void ** a)
 {
    if (!*a) return;
-   
+
    I_PREPHDR;
-   
+
    hh_bloom_free(&header->bloom);
-   
+
    free(*a);
-   
+
    *a = NULL;
 }
 
@@ -142,16 +142,16 @@ hh_status_t hh_i_asa_empty(void ** a)
    hh_bloom_free(&header->bloom);
 
    /* Reinitialize the hash table while keeping the seed and element size */
-   size_t     tes   = header->element_size;
-   uint64_t   seed  = header->seed;
+   size_t   tes  = header->element_size;
+   uint64_t seed = header->seed;
 
    /* Depends on init usage of realloc instead of malloc */
    hh_status_t s = hh_i_asa_init(a, tes);
    if (s != HH_STATUS_OKAY) return s;
 
    /* Keep the seed the same, just in case/to prevent excess re-hashing */
-   header        = *a;
-   header->seed  = seed;
+   header       = *a;
+   header->seed = seed;
 
    return HH_STATUS_OKAY;
 }
@@ -175,7 +175,7 @@ int32_t hh_i_asa_lookup(void ** a, hh_asa_id_t id)
    I_PREPHDR;
 
    if (!hh_bloom_in(&header->bloom, &id, sizeof(id))) return -1;
-   
+
    int32_t                 first_lazydel_idx = -1;
    uint32_t                probe;
    struct hh_asa_elhdr_s * cur_el_hdr;
@@ -280,7 +280,7 @@ hh_status_t hh_i_asa_set(void ** a, hh_asa_id_t id, void * value)
              header->element_size);
       return HH_STATUS_OKAY;
    }
-   
+
    hh_bloom_add(&header->bloom, &id, sizeof(id));
 
    uint32_t                probe   = id.h64s[0] & I_TIERCLM(header->tier);
