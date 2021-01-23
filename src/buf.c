@@ -25,7 +25,7 @@ const hh_alloc_t hh_g_alloc
 
 const hh_buf_t hh_def_buf = {.bytes = 0, .data = NULL, .mi = &hh_g_alloc};
 
-hh_buf_t hh_buf_mk(hh_alloc_t * allocator)
+hh_buf_t hh_buf_mk(const hh_alloc_t * allocator)
 {
    hh_buf_t template = hh_def_buf;
 

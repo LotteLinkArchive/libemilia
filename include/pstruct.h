@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "buf.h"
 #include "gdefs.h"
 #include "status.h"
 
@@ -44,6 +45,8 @@ union hh_pstypebuf_u {
    double   double64;
 };
 
+typedef union hh_pstypebuf_u hh_pstype_t;
+
 /* Representation of a pstruct field */
 struct hh_psfield_s {
    char type;
@@ -52,6 +55,8 @@ struct hh_psfield_s {
 
    void * data;
 };
+
+typedef struct hh_psfield_s hh_psfld_t;
 
 /* Representation of a pstruct */
 struct hh_psformat_s {
@@ -73,6 +78,8 @@ struct hh_psformat_s {
    hh_status_t status;
 };
 
+typedef struct hh_psformat_s hh_psfmt_t;
+
 /* Modifiable pstruct buffer */
 struct hh_psbuf_s {
    /* The actual data */
@@ -86,16 +93,7 @@ struct hh_psbuf_s {
    hh_status_t status;
 };
 
-/* A finalized pstruct (Data pointer points to the data in a buffer - do NOT
- * free a buffer until done with this) */
-struct hh_psfinal_s {
-   uint8_t * data;
-
-   size_t data_length;
-
-   /* Whether or not this struct has its own related malloc */
-   bool isolated;
-};
+typedef struct hh_psbuf_s hh_psbuf_t;
 
 /* Use this to make a Portable/Primitive Struct Format.
  * Valid format string types: xBb?HhIiQqfd (See above)
@@ -104,7 +102,7 @@ struct hh_psfinal_s {
  * Formats can be re-used throughout the lifetime of the program, and are thread
  * safe.
  */
-HH_EXTERN struct hh_psformat_s hh_make_psformat(const char * format_string);
+HH_EXTERN hh_psfmt_t hh_make_psformat(const char * format_string);
 
 /* Use this to create a Portable/Primitive Struct Buffer.
  * This is a buffer, based on a format, that is fully mutable. You cannot change
@@ -113,29 +111,27 @@ HH_EXTERN struct hh_psformat_s hh_make_psformat(const char * format_string);
  * (with `hh_psfreebuf`) when you are done with it. You can, however, keep
  * re-using a single buffer throughout the program if you wish.
  */
-HH_EXTERN struct hh_psbuf_s hh_psmkbuf(struct hh_psformat_s * format,
-                                       void *                 data);
+HH_EXTERN hh_psbuf_t hh_psmkbuf(hh_psfmt_t * format, void * data);
 
 /* Updates all of the data in a buffer with the provided data. Cannot be NULL.
  * Input data must be the same length as buffer.format->data_length, or expect
  * undefined behaviour.
  */
-HH_EXTERN void hh_psupdbuf(struct hh_psbuf_s * buffer, void * data);
+HH_EXTERN void hh_psupdbuf(hh_psbuf_t * buffer, void * data);
 
 /* Destroy a buffer. Will return HH_DOUBLE_FREE if you already called this on a
  * buffer before. This removes the built-in field abstraction AND the produced
  * data.
  */
-HH_EXTERN hh_status_t hh_psfreebuf(struct hh_psbuf_s * buffer);
+HH_EXTERN hh_status_t hh_psfreebuf(hh_psbuf_t * buffer);
 
 /* Set/get a value in a buffer. Type is automatically determined and auto-picked
  * from the union depending on the index. DO NOT go out of bounds.
  */
-HH_EXTERN void                 hh_psfield_set(struct hh_psbuf_s *  buffer,
-                                              unsigned int         index,
-                                              union hh_pstypebuf_u value);
-HH_EXTERN union hh_pstypebuf_u hh_psfield_get(struct hh_psbuf_s * buffer,
-                                              unsigned int        index);
+HH_EXTERN void        hh_psfield_set(hh_psbuf_t * buffer,
+                                     unsigned int index,
+                                     hh_pstype_t  value);
+HH_EXTERN hh_pstype_t hh_psfield_get(hh_psbuf_t * buffer, unsigned int index);
 
 /* Abstractions for the set/get functions so that you don't have to use a union.
  * In most cases, you'll only need eset/eget. You should try to use these as
@@ -144,52 +140,37 @@ HH_EXTERN union hh_pstypebuf_u hh_psfield_get(struct hh_psbuf_s * buffer,
 #define hh_psfield_eset(buffer, index, value)          \
    do {                                                \
       __typeof__(value) _ESVTEMP = (value);            \
-      union hh_pstypebuf_u _ESVUTEMP;                  \
+      hh_pstype_t _ESVUTEMP;                           \
       memcpy(&_ESVUTEMP, &_ESVTEMP, sizeof(_ESVTEMP)); \
       hh_psfield_set(buffer, index, _ESVUTEMP);        \
    } while (0)
 
-#define hh_psfield_eget(buffer, index, type)                          \
-   ({                                                                 \
-      type                 _ESVTEMP;                                  \
-      union hh_pstypebuf_u _ESVUTEMP = hh_psfield_get(buffer, index); \
-      memcpy(&_ESVTEMP, &_ESVUTEMP, sizeof(type));                    \
-      _ESVTEMP;                                                       \
+#define hh_psfield_eget(buffer, index, type)                 \
+   ({                                                        \
+      type        _ESVTEMP;                                  \
+      hh_pstype_t _ESVUTEMP = hh_psfield_get(buffer, index); \
+      memcpy(&_ESVTEMP, &_ESVUTEMP, sizeof(type));           \
+      _ESVTEMP;                                              \
    })
 
 /* This abstraction macro is specifically intended for filling an external
  * variable. You'll rarely have to use this, in most cases `eget` will do.
  */
-#define hh_psfield_evget(buffer, index, variable)                     \
-   do {                                                               \
-      union hh_pstypebuf_u _ESVUTEMP = hh_psfield_get(buffer, index); \
-      memcpy(&variable, &_ESVUTEMP, sizeof(variable));                \
+#define hh_psfield_evget(buffer, index, variable)            \
+   do {                                                      \
+      hh_pstype_t _ESVUTEMP = hh_psfield_get(buffer, index); \
+      memcpy(&variable, &_ESVUTEMP, sizeof(variable));       \
    } while (0)
 
 /* Packing functions similar to Python's struct.pack. All of the provided
  * arguments must be exactly the right type and there must be exactly the right
  * amount of them (see buffer.format->variables).
  */
-HH_EXTERN void hh_psbuf_vpack(struct hh_psbuf_s * buffer, va_list ivariables);
-HH_EXTERN void hh_psbuf_pack(struct hh_psbuf_s * buffer, ...);
+HH_EXTERN void hh_psbuf_vpack(hh_psbuf_t * buffer, va_list ivariables);
+HH_EXTERN void hh_psbuf_pack(hh_psbuf_t * buffer, ...);
 
-/* "Finalizes" a provided buffer. This doesn't really change the buffer at all,
- * but it does return a new structure that makes it easier to transmit the data.
- * The returned structure contains a "data" element (which represents the bytes
- * of the pstruct) and a "data_length" element (which is the amount of bytes in
- * "data"). The "data" pointer points to the "buffer" region inside the given
- * buffer, so DO NOT free the buffer until you're done using the finalized data.
+/* Extracts the contents of a psbuffer into a separately-allocated hh_buf_t.
+ * You will need to free the buffer and the psbuffer when you're done with them
+ * still.
  */
-HH_EXTERN struct hh_psfinal_s hh_psfinalize(struct hh_psbuf_s * buffer);
-
-/* Isolates a finalized buffer from the mutable host buffer by allocating a
- * separate region of memory and copying the contents of the mutable buffer to
- * the finalized buffer.
- */
-HH_EXTERN hh_status_t hh_psfinal_isolate(struct hh_psfinal_s * final_ps);
-
-/* Destroys an isolated, finalized buffer by freeing the allocated memory and
- * setting the data pointer to NULL. Will return HH_REMOTE_ALLOC if not
- * isolated.
- */
-HH_EXTERN hh_status_t hh_psfin_isodestroy(struct hh_psfinal_s * final_ps);
+hh_status_t hh_psbuf_extract(hh_psbuf_t * target, hh_buf_t * final_buf);

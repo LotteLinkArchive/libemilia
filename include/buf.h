@@ -27,6 +27,6 @@ typedef struct hh_buf_s hh_buf_t;
 extern const hh_alloc_t hh_g_alloc;
 extern const hh_buf_t   hh_def_buf;
 
-hh_buf_t    hh_buf_mk(hh_alloc_t * allocator);
+hh_buf_t    hh_buf_mk(const hh_alloc_t * allocator);
 hh_status_t hh_buf_resz(hh_buf_t * buffer, size_t bytes, bool zero);
 void        hh_buf_free(hh_buf_t * buffer);
