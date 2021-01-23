@@ -353,26 +353,19 @@ hh_status_t hh_i_asa_reform(void ** a, bool forced)
           || header->elements == 0)
          return HH_STATUS_OKAY;
 
-   char *   telbuf = NULL;
+   char *   telbuf = malloc(header->elements * I_TELS_HS);
    uint32_t bufels = 0;
    uint32_t cindex;
 
-   for (cindex = header->highest_index + 1; cindex-- > 0;) {
+   if (!telbuf) return HH_OUT_OF_MEMORY;
+   
+   for (cindex = 0; cindex <= header->highest_index; cindex++) {
       cur_el_hdr = hh_i_asa_getip(a, cindex);
 
       if ((cur_el_hdr->flags & 0x01) && !(cur_el_hdr->flags & 0x02)) {
-         telbuf = realloc(telbuf, (bufels + 1) * I_TELS_HS);
-         if (!telbuf) return HH_OUT_OF_MEMORY;
-
          memcpy((telbuf + (I_TELS_HS * bufels)), cur_el_hdr, I_TELS_HS);
-
          bufels++;
       }
-
-      *a = realloc(*a, HH_ASA_HR_SZ + (cindex * I_TELS_HS));
-      if (!*a) return HH_OUT_OF_MEMORY;
-
-      I_REINHDR;
    }
 
    hh_status_t cstat = hh_i_asa_empty(a);
@@ -392,14 +385,11 @@ hh_status_t hh_i_asa_reform(void ** a, bool forced)
 
    header->tier = match_tier;
 
-   for (cindex = bufels; cindex-- > 0;) {
+   for (cindex = 0; cindex < bufels; cindex++) {
       cur_el_hdr = (struct hh_asa_elhdr_s *)(telbuf + (I_TELS_HS * cindex));
       hh_i_asa_set(a, cur_el_hdr->id, cur_el_hdr + 1);
 
       I_REINHDR;
-
-      telbuf = realloc(telbuf, (cindex + 1) * I_TELS_HS);
-      if (!telbuf) return HH_OUT_OF_MEMORY;
    }
 
    free(telbuf);
