@@ -5,6 +5,8 @@
 
 int main(void)
 {
+   hh_status_t ts;
+
    int * stuff = aa_make(int);
    if (!stuff) {
       printf("Allocation failure!\n");
@@ -16,8 +18,8 @@ int main(void)
       return EXIT_FAILURE;
    }
 
-   if (aa_set(stuff, aa_sh(stuff, "EL01"), -4242) != HH_STATUS_OKAY) {
-      printf("EL01 could not be set on init!\n");
+   if ((ts = aa_set(stuff, aa_sh(stuff, "EL01"), -4242)) != HH_STATUS_OKAY) {
+      printf("EL01 could not be set on init! (%s)\n", hh_status_str(ts));
       return EXIT_FAILURE;
    }
 
@@ -31,16 +33,16 @@ int main(void)
       return EXIT_FAILURE;
    }
 
-#define MKSPAMEL 128
+#define MKSPAMEL 1024
 
-   for (unsigned char x = 0; x < MKSPAMEL; x++) {
-      if (aa_set(stuff, aa_vh(stuff, x), x + 1) != HH_STATUS_OKAY) {
-         printf("Spam elements could not be set!\n");
+   for (unsigned int x = 0; x < MKSPAMEL; x++) {
+      if ((ts = aa_set(stuff, aa_vh(stuff, x), x + 1)) != HH_STATUS_OKAY) {
+         printf("Spam elements could not be set! (%s)\n", hh_status_str(ts));
          return EXIT_FAILURE;
       }
    }
 
-   for (unsigned char x = 0; x < MKSPAMEL; x++) {
+   for (unsigned int x = 0; x < MKSPAMEL; x++) {
       if (!aa_in(stuff, aa_vh(stuff, x))) {
          printf("%u not found!\n", x);
          return EXIT_FAILURE;
@@ -52,9 +54,10 @@ int main(void)
       }
    }
 
-   for (unsigned char x = 0; x < MKSPAMEL; x++) {
-      if (aa_del(stuff, aa_vh(stuff, x)) != HH_STATUS_OKAY) {
-         printf("Spam elements could not be deleted!\n");
+   for (unsigned int x = 0; x < MKSPAMEL; x++) {
+      if ((ts = aa_del(stuff, aa_vh(stuff, x))) != HH_STATUS_OKAY) {
+         printf("Spam elements could not be deleted! (%s)\n",
+                hh_status_str(ts));
          return EXIT_FAILURE;
       }
 
@@ -63,7 +66,7 @@ int main(void)
 
    aa_egc(stuff);
 
-   for (unsigned char x = 0; x < MKSPAMEL; x++) {
+   for (unsigned int x = 0; x < MKSPAMEL; x++) {
       if (aa_in(stuff, aa_vh(stuff, x))) {
          printf("Spam elements found after deletion!\n");
          return EXIT_FAILURE;
