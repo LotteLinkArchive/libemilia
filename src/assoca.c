@@ -31,6 +31,12 @@
  *   component of HexHive. To interface with it, you will absolutely need the 
  *   provided header file (assoca.h), as it contains various macros intended
  *   to massively simplify the process of using this data structure.
+ *  ---------------------------------------------------------------------------
+ *   When downloading this, you should've been provided with a copy of the
+ *   LICENSE document. If not, you can find it here:
+ *   https://git.lotte.link/naphtha/hexhive/src/branch/master/LICENSE
+ *  ---------------------------------------------------------------------------
+ *   Copyright (c) Naphtha Nepanthez 2021 <naphtha@lotte.link>
  * \*-------------------------------------------------------------------------*/
 
 #include "../include/assoca.h"
