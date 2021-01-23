@@ -34,7 +34,7 @@ static uint32_t    hh_i_asa_probe(void **       a,
 
 /* Public Functions --------------------------------------------------------- */
 
-hh_asa_id_t hh_i_asa_hrange(void ** a, void * key, size_t amt)
+hh_asa_id_t hh_i_asa_hrange(void ** a, const void * key, size_t amt)
 {
    /* Hashes for the hash table are performed with 128-bit xxHash3.
     * A seed (randomized on hash table init) is used to ensure that each
@@ -272,7 +272,7 @@ hh_status_t hh_i_asa_reform(void ** a, bool forced)
     * optimization, research and development. It's probably the only part of
     * this implementation that kind of sucks.
     */
-   
+
    I_PREPHDR;
 
    struct hh_asa_elhdr_s * cur_el_hdr;
@@ -386,7 +386,7 @@ static uint32_t hh_i_asa_probe(void **       a,
 {
 #ifdef HH_I_ASA_RANDOMP
    I_PREPHDR;
-   
+
    return (XXH32(&key, sizeof(key), header->seed ^ depth)) & I_TIERCLM(tier);
 #else
    return (key + 1) & I_TIERCLM(tier);
