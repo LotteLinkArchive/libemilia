@@ -289,7 +289,7 @@ hh_status_t hh_i_asa_reform(void ** a, bool forced)
    /* This is an overcomplicated way of checking if a table needs a downscale */
    if (!forced)
       if (((double)header->elements
-           > ((3.0L / 4.0L) * (double)(I_TIERCLM(tmax) + 1)))
+           > ((2.0L / 3.0L) * (double)(I_TIERCLM(tmax) + 1)))
           || ((time(NULL) - header->tier_change_time) < header->tier)
           || header->elements == 0)
          return HH_STATUS_OKAY;
@@ -425,7 +425,7 @@ static hh_status_t hh_i_asa_grow(void ** a)
    I_PREPHDR;
 
    if ((double)header->elements
-       <= ((3.0L / 4.0L) * (double)(I_TIERCLM(header->tier) + 1)))
+       <= ((2.0L / 3.0L) * (double)(I_TIERCLM(header->tier) + 1)))
       return HH_STATUS_OKAY;
    if (header->tier >= HH_ASA_MAX_TIER) return HH_INT_OVERFLOW;
 
