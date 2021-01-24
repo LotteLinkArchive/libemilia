@@ -80,10 +80,10 @@ hh_status_t hh_i_asa_init(void ** a, size_t el_size)
     * (Handy way to empty an assoca, although you may want to change the seed
     * back to normal again afterwards)
     */
-   *a = realloc(*a, HH_ASA_HR_SZ + (el_size + HH_ASA_EH_SZ));
+   *a = realloc(*a, HH_ASA_HR_SZ + el_size + HH_ASA_EH_SZ);
    if (!*a) return HH_OUT_OF_MEMORY;
    memcpy(*a, &hh_asa_defhr, HH_ASA_HR_SZ);
-   memset(((struct hh_asa_hdr_s *)*a) + 1, 0, (el_size + HH_ASA_EH_SZ));
+   memset((struct hh_asa_hdr_s *)*a + 1, 0, el_size + HH_ASA_EH_SZ);
 
    I_PREPHDR;
 
@@ -137,8 +137,8 @@ void * hh_i_asa_getip(void ** a, uint32_t i)
 
    char * b = *a;
 
-   b = (b + HH_ASA_HR_SZ) + (i * I_TELS_HS);
-   return (i > header->highest_index) ? NULL : b;
+   b = b + HH_ASA_HR_SZ + i * I_TELS_HS;
+   return i > header->highest_index ? NULL : b;
 }
 
 int32_t hh_i_asa_lookup(void ** a, hh_asa_id_t id)
@@ -184,7 +184,7 @@ int32_t hh_i_asa_lookup(void ** a, hh_asa_id_t id)
          if (comparison) return probe;
 
          /* Check if the first element has no collisions, if not, return -1 */
-         if ((!(cur_el_hdr->flags & 0x4)) && (probe == tiprob)) break;
+         if (!(cur_el_hdr->flags & 0x4) && probe == tiprob) break;
 
          searches++;
 
@@ -282,12 +282,12 @@ hh_status_t hh_i_asa_reform(void ** a, bool forced)
    I_PREPHDR;
 
    struct hh_asa_elhdr_s * cur_el_hdr;
-   
+
    if (header->elements < 1) return hh_i_asa_empty(a);
    if ((signed char)header->tier - 1 < HH_ASA_MIN_TIER) return HH_STATUS_OKAY;
-   if (!forced && ((header->ld_elements * 2) < hh_i_asa_freeslots(a)))
+   if (!forced && header->ld_elements * 2 < hh_i_asa_freeslots(a))
       return HH_STATUS_OKAY; /* Table doesn't need downscaling */
-   
+
    char *   telbuf = malloc(header->elements * I_TELS_HS);
    uint32_t bufels = 0;
    uint32_t cindex;
@@ -298,7 +298,7 @@ hh_status_t hh_i_asa_reform(void ** a, bool forced)
       cur_el_hdr = hh_i_asa_getip(a, cindex);
 
       if ((cur_el_hdr->flags & 0x01) && !(cur_el_hdr->flags & 0x02)) {
-         memcpy((telbuf + (I_TELS_HS * bufels)), cur_el_hdr, I_TELS_HS);
+         memcpy(telbuf + I_TELS_HS * bufels, cur_el_hdr, I_TELS_HS);
          bufels++;
       }
    }
@@ -324,7 +324,7 @@ hh_status_t hh_i_asa_reform(void ** a, bool forced)
    header->tier = match_tier;
 
    for (cindex = 0; cindex < bufels; cindex++) {
-      cur_el_hdr = (struct hh_asa_elhdr_s *)(telbuf + (I_TELS_HS * cindex));
+      cur_el_hdr = (struct hh_asa_elhdr_s *)(telbuf + I_TELS_HS * cindex);
       hh_i_asa_set(a, cur_el_hdr->id, cur_el_hdr + 1);
 
       I_REINHDR;
@@ -374,10 +374,10 @@ static uint32_t hh_i_asa_rup2f32(uint32_t v)
 
 static uint32_t hh_i_asa_probe(void ** a, uint32_t key, unsigned char tier)
 {
-   __hh_unused(a);
-   
 #ifdef HH_I_ASA_RANDOMP
-   return ((5 * key) + 1) & I_TIERCLM(tier);
+   I_PREPHDR;
+
+   return (5 * key + header->seed * 2 + 1) & I_TIERCLM(tier);
 #else
    return (key + 1) & I_TIERCLM(tier);
 #endif
@@ -392,8 +392,8 @@ static hh_status_t hh_i_asa_ensurei(void ** a, uint32_t high_as)
    I_PREPHDR;
 
    uint32_t ohil   = header->highest_index + 1;
-   size_t   olsize = HH_ASA_HR_SZ + ((size_t)ohil * I_TELS_HS);
-   size_t   nwsize = HH_ASA_HR_SZ + (((size_t)high_as + 1) * I_TELS_HS);
+   size_t   olsize = HH_ASA_HR_SZ + (size_t)ohil * I_TELS_HS;
+   size_t   nwsize = HH_ASA_HR_SZ + ((size_t)high_as + 1) * I_TELS_HS;
 
    if (nwsize <= olsize) return HH_STATUS_OKAY;
 
@@ -422,7 +422,7 @@ static hh_status_t hh_i_asa_grow(void ** a)
    I_PREPHDR;
 
    if ((double)header->elements
-       <= ((2.0L / 3.0L) * (double)(I_TIERCLM(header->tier) + 1)))
+       <= 2.0L / 3.0L * (double)(I_TIERCLM(header->tier) + 1))
       return HH_STATUS_OKAY;
    if (header->tier >= HH_ASA_MAX_TIER) return HH_INT_OVERFLOW;
 
@@ -440,7 +440,6 @@ static uint32_t hh_i_asa_freeslots(void ** a)
     * here, there's no actual formal standards document for this particular
     * variant of the hash table...
     */
-   
-   return ((I_TIERCLM(header->tier) + 1) - header->elements)
-          - header->ld_elements;
+
+   return I_TIERCLM(header->tier) + 1 - header->elements - header->ld_elements;
 }
