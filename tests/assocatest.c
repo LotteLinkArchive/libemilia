@@ -33,7 +33,7 @@ int main(void)
       return EXIT_FAILURE;
    }
 
-#define MKSPAMEL 1024
+#define MKSPAMEL 16384
 
    for (unsigned int x = 0; x < MKSPAMEL; x++) {
       if ((ts = aa_set(stuff, aa_vh(stuff, x), x + 1)) != HH_STATUS_OKAY) {
@@ -56,12 +56,10 @@ int main(void)
 
    for (unsigned int x = 0; x < MKSPAMEL; x++) {
       if ((ts = aa_del(stuff, aa_vh(stuff, x))) != HH_STATUS_OKAY) {
-         printf("Spam elements could not be deleted! (%s)\n",
+         printf("Spam elements could not be deleted! (%u, %s)\n", x,
                 hh_status_str(ts));
          return EXIT_FAILURE;
       }
-
-      aa_egc(stuff);
    }
 
    aa_egc(stuff);

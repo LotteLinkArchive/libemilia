@@ -46,10 +46,7 @@ static uint32_t    hh_i_asa_rup2f32(uint32_t v);
 static hh_status_t hh_i_asa_ensurei(void ** a, uint32_t high_as);
 static bool        hh_i_asa_eq_id(hh_asa_id_t ida, hh_asa_id_t idb);
 static hh_status_t hh_i_asa_grow(void ** a);
-static uint32_t    hh_i_asa_probe(void **       a,
-                                  uint32_t      key,
-                                  unsigned char tier,
-                                  uint32_t      depth);
+static uint32_t    hh_i_asa_probe(void ** a, uint32_t key, unsigned char tier);
 
 /* Public Functions --------------------------------------------------------- */
 
@@ -150,7 +147,6 @@ int32_t hh_i_asa_lookup(void ** a, hh_asa_id_t id)
 
    if (!hh_bloom_in(&header->bloom, &id, sizeof(id))) return -1;
 
-   int32_t                 first_lazydel_idx = -1;
    uint32_t                probe;
    struct hh_asa_elhdr_s * cur_el_hdr;
    signed char             tier;
@@ -178,9 +174,6 @@ int32_t hh_i_asa_lookup(void ** a, hh_asa_id_t id)
 
          /* & 0x2 -> Is it lazy deleted? */
          if (cur_el_hdr->flags & 0x2) {
-            /* Lazy deleted cell detected, may move into this later! */
-            if (first_lazydel_idx < 0) first_lazydel_idx = probe;
-
             /* If comparison matches, the element we're looking for has been
              * deleted, so ignore it and return -1. */
             if (comparison) break;
@@ -188,7 +181,7 @@ int32_t hh_i_asa_lookup(void ** a, hh_asa_id_t id)
 
          /* If occupied, not deleted and comparison matches, we found the
           * element we're looking for! */
-         if (comparison) goto i_lookup_found;
+         if (comparison) return probe;
 
          /* Check if the first element has no collisions, if not, return -1 */
          if ((!(cur_el_hdr->flags & 0x4)) && (probe == tiprob)) break;
@@ -205,37 +198,11 @@ int32_t hh_i_asa_lookup(void ** a, hh_asa_id_t id)
 
          /* Next probes are all handled by a function which can do whatever
           * it wants to the previous probe. */
-         probe = hh_i_asa_probe(a, probe, tier, searches);
+         probe = hh_i_asa_probe(a, probe, tier);
       }
-
-      first_lazydel_idx = -1;
    }
 
    return -1;
-i_lookup_found:
-   if (first_lazydel_idx >= 0) {
-      /* If:
-       * - We found the element we're looking for.
-       * - There's nothing after it (next cell is unoccupied).
-       * - We found a lazy deleted cell earlier too.
-       * We can move the found element into the lazy deleted cell, helping
-       * reduce the load factor if lazy deletion is employed.
-       *
-       * TODO: Find other ways to reduce lazy deletion without reforming.
-       */
-
-      struct hh_asa_elhdr_s * t_el_hdr
-         = hh_i_asa_getip(a, hh_i_asa_probe(a, probe, tier, searches + 1));
-      if (t_el_hdr)
-         if (t_el_hdr->flags & 0x1) return probe;
-
-      memcpy(hh_i_asa_getip(a, first_lazydel_idx), cur_el_hdr, I_TELS_HS);
-      memset(cur_el_hdr, 0, I_TELS_HS);
-
-      return first_lazydel_idx;
-   }
-
-   return probe;
 }
 
 hh_status_t hh_i_asa_set(void ** a, hh_asa_id_t id, void * value)
@@ -289,7 +256,7 @@ hh_status_t hh_i_asa_set(void ** a, hh_asa_id_t id, void * value)
       if (probe == tiprobe) cur_el_hdr->flags |= 0x4;
 
       searches++;
-      probe   = hh_i_asa_probe(a, probe, header->tier, searches);
+      probe   = hh_i_asa_probe(a, probe, header->tier);
       flagset = 0;
    }
 
@@ -343,7 +310,10 @@ hh_status_t hh_i_asa_reform(void ** a, bool forced)
    }
 
    hh_status_t cstat = hh_i_asa_empty(a);
-   if (cstat != HH_STATUS_OKAY) return cstat;
+   if (cstat != HH_STATUS_OKAY) {
+      free(telbuf);
+      return cstat;
+   }
 
    I_REINHDR;
 
@@ -407,15 +377,10 @@ static uint32_t hh_i_asa_rup2f32(uint32_t v)
    return v;
 }
 
-static uint32_t hh_i_asa_probe(void **       a,
-                               uint32_t      key,
-                               unsigned char tier,
-                               uint32_t      depth)
+static uint32_t hh_i_asa_probe(void ** a, uint32_t key, unsigned char tier)
 {
 #ifdef HH_I_ASA_RANDOMP
-   I_PREPHDR;
-
-   return (XXH32(&key, sizeof(key), header->seed ^ depth)) & I_TIERCLM(tier);
+   return ((5 * key) + 1) & I_TIERCLM(tier);
 #else
    return (key + 1) & I_TIERCLM(tier);
 #endif

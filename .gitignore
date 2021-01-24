@@ -56,3 +56,4 @@ builddir/
 build/
 *.kdev4
 *.kate-swp
+buildrel/
