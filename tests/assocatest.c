@@ -33,7 +33,7 @@ int main(void)
       return EXIT_FAILURE;
    }
 
-#define MKSPAMEL 16384
+#define MKSPAMEL 65535
 
    for (unsigned int x = 0; x < MKSPAMEL; x++) {
       if ((ts = aa_set(stuff, aa_vh(stuff, x), x + 1)) != HH_STATUS_OKAY) {

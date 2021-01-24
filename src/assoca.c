@@ -282,6 +282,8 @@ hh_status_t hh_i_asa_reform(void ** a, bool forced)
 
    struct hh_asa_elhdr_s * cur_el_hdr;
 
+   if (header->elements < 1) return hh_i_asa_empty(a);
+
    unsigned char tmax = __hh_max(header->tier - 1, HH_ASA_MIN_TIER);
 
    if ((signed char)header->tier - 1 < HH_ASA_MIN_TIER) return HH_STATUS_OKAY;
@@ -290,8 +292,7 @@ hh_status_t hh_i_asa_reform(void ** a, bool forced)
    if (!forced)
       if (((double)header->elements
            > ((2.0L / 3.0L) * (double)(I_TIERCLM(tmax) + 1)))
-          || ((time(NULL) - header->tier_change_time) < header->tier)
-          || header->elements == 0)
+          || ((time(NULL) - header->tier_change_time) < header->tier))
          return HH_STATUS_OKAY;
 
    char *   telbuf = malloc(header->elements * I_TELS_HS);
