@@ -358,7 +358,7 @@ hh_status_t hh_i_asa_reform(void ** a, bool forced)
    uint32_t cindex;
 
    if (!telbuf) return HH_OUT_OF_MEMORY;
-   
+
    for (cindex = 0; cindex <= header->highest_index; cindex++) {
       cur_el_hdr = hh_i_asa_getip(a, cindex);
 
