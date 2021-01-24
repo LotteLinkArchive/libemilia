@@ -377,7 +377,7 @@ static uint32_t hh_i_asa_probe(void ** a, uint32_t key, unsigned char tier)
 #ifdef HH_I_ASA_RANDOMP
    I_PREPHDR;
 
-   return (5 * key + header->seed * 2 + 1) & I_TIERCLM(tier);
+   return (5 * key + (header->seed | 1)) & I_TIERCLM(tier);
 #else
    return (key + 1) & I_TIERCLM(tier);
 #endif
