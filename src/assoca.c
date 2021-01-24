@@ -374,6 +374,8 @@ static uint32_t hh_i_asa_rup2f32(uint32_t v)
 
 static uint32_t hh_i_asa_probe(void ** a, uint32_t key, unsigned char tier)
 {
+   __hh_unused(a);
+   
 #ifdef HH_I_ASA_RANDOMP
    return ((5 * key) + 1) & I_TIERCLM(tier);
 #else
