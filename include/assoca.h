@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 #include "bloom.h"
 #include "gdefs.h"
@@ -77,9 +76,9 @@ typedef struct hh_asa_id_s hh_asa_id_t;
 
 struct hh_asa_hdr_s {
    unsigned char tier;
-   time_t        tier_change_time;
    uint32_t      highest_index;
    uint32_t      elements;
+   uint32_t      ld_elements;
    uint32_t      ddepth;
    size_t        element_size;
    uint64_t      seed;

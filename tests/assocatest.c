@@ -62,8 +62,6 @@ int main(void)
       }
    }
 
-   aa_egc(stuff);
-
    for (unsigned int x = 0; x < MKSPAMEL; x++) {
       if (aa_in(stuff, aa_vh(stuff, x))) {
          printf("Spam elements found after deletion!\n");
@@ -72,8 +70,6 @@ int main(void)
    }
 
    aa_del(stuff, aa_sh(stuff, "EL01"));
-
-   aa_egc(stuff);
 
    aa_free(stuff);
 

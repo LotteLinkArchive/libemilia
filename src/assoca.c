@@ -15,7 +15,6 @@
 
 #include "../include/assoca.h"
 
-#include <time.h>
 #include <xxhash.h>
 
 #include "../include/mt19937-64.h"
@@ -47,6 +46,7 @@ static hh_status_t hh_i_asa_ensurei(void ** a, uint32_t high_as);
 static bool        hh_i_asa_eq_id(hh_asa_id_t ida, hh_asa_id_t idb);
 static hh_status_t hh_i_asa_grow(void ** a);
 static uint32_t    hh_i_asa_probe(void ** a, uint32_t key, unsigned char tier);
+static uint32_t    hh_i_asa_freeslots(void ** a);
 
 /* Public Functions --------------------------------------------------------- */
 
@@ -244,6 +244,7 @@ hh_status_t hh_i_asa_set(void ** a, hh_asa_id_t id, void * value)
       if (cur_el_hdr->flags & 0x2) {
          /* NOTE: Copies ALL other flags if LD! */
          flagset = cur_el_hdr->flags ^ 0x2;
+         header->ld_elements--;
 
          goto i_insert_lda;
       }
@@ -281,20 +282,12 @@ hh_status_t hh_i_asa_reform(void ** a, bool forced)
    I_PREPHDR;
 
    struct hh_asa_elhdr_s * cur_el_hdr;
-
+   
    if (header->elements < 1) return hh_i_asa_empty(a);
-
-   unsigned char tmax = __hh_max(header->tier - 1, HH_ASA_MIN_TIER);
-
    if ((signed char)header->tier - 1 < HH_ASA_MIN_TIER) return HH_STATUS_OKAY;
-
-   /* This is an overcomplicated way of checking if a table needs a downscale */
-   if (!forced)
-      if (((double)header->elements
-           > ((2.0L / 3.0L) * (double)(I_TIERCLM(tmax) + 1)))
-          || ((time(NULL) - header->tier_change_time) < header->tier))
-         return HH_STATUS_OKAY;
-
+   if (!forced && ((header->ld_elements * 2) < hh_i_asa_freeslots(a)))
+      return HH_STATUS_OKAY; /* Table doesn't need downscaling */
+   
    char *   telbuf = malloc(header->elements * I_TELS_HS);
    uint32_t bufels = 0;
    uint32_t cindex;
@@ -353,6 +346,7 @@ hh_status_t hh_i_asa_delete(void ** a, hh_asa_id_t id)
 
    cur_el_hdr->flags |= 0x2;
    header->elements--;
+   header->ld_elements++;
 
    hh_i_asa_reform(a, false);
 
@@ -431,7 +425,20 @@ static hh_status_t hh_i_asa_grow(void ** a)
    if (header->tier >= HH_ASA_MAX_TIER) return HH_INT_OVERFLOW;
 
    header->tier++;
-   header->tier_change_time = time(NULL);
 
    return HH_STATUS_OKAY;
+}
+
+static uint32_t hh_i_asa_freeslots(void ** a)
+{
+   I_PREPHDR;
+
+   /* NOTE: This actually returns the number of fully unoccupied slots, not
+    * the amount of free slots. Well, I mean, English is a bit disputable
+    * here, there's no actual formal standards document for this particular
+    * variant of the hash table...
+    */
+   
+   return ((I_TIERCLM(header->tier) + 1) - header->elements)
+          - header->ld_elements;
 }
