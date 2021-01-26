@@ -37,6 +37,8 @@
 
 #define I_TIERCLM(x) (0xFFFFFFFF >> (31 - (x))) /* TM i31 UU */
 
+enum hh_asa_flags_e { FL_OCCUPY = 1, FL_DELETE = 2, FL_COLLIS = 4 };
+
 /* Static Declarations & Constant Variables --------------------------------- */
 
 static const struct hh_asa_hdr_s hh_asa_defhr = { .tier = HH_ASA_MIN_TIER };
@@ -172,14 +174,14 @@ int32_t hh_i_asa_lookup(void **a, hh_asa_id_t id)
             break; /* Index too high - unoccupied, return -1 */
 
          /* If not occupied, return -1 */
-         if (!(cur_el_hdr->flags & 0x1))
+         if (!(cur_el_hdr->flags & FL_OCCUPY))
             break;
 
          /* Compare the full hashes at every probe unless unoccupied */
          bool comparison = hh_i_asa_eq_id(id, cur_el_hdr->id);
 
          /* & 0x2 -> Is it lazy deleted? */
-         if (cur_el_hdr->flags & 0x2) {
+         if (cur_el_hdr->flags & FL_DELETE) {
             /* If comparison matches, the element we're looking for has been
              * deleted, so ignore it and return -1. */
             if (comparison)
@@ -192,7 +194,7 @@ int32_t hh_i_asa_lookup(void **a, hh_asa_id_t id)
             return probe;
 
          /* Check if the first element has no collisions, if not, return -1 */
-         if (!(cur_el_hdr->flags & 0x4) && probe == tiprob)
+         if (!(cur_el_hdr->flags & FL_COLLIS) && probe == tiprob)
             break;
 
          searches++;
@@ -249,21 +251,21 @@ hh_status_t hh_i_asa_set(void **a, hh_asa_id_t id, void *value)
 
       cur_el_hdr = hh_i_asa_getip(a, probe);
 
-      if (cur_el_hdr->flags & 0x2) {
+      if (cur_el_hdr->flags & FL_DELETE) {
          /* NOTE: Copies ALL other flags if LD! */
-         flagset = cur_el_hdr->flags ^ 0x2;
+         flagset = cur_el_hdr->flags ^ FL_DELETE;
          header->ld_elements--;
 
          goto i_insert_lda;
       }
-      if (!(cur_el_hdr->flags & 0x1)) {
+      if (!(cur_el_hdr->flags & FL_OCCUPY)) {
       i_insert_lda:
-         flagset |= 0x1;
+         flagset |= FL_OCCUPY;
          break;
       }
 
       if (probe == tiprobe)
-         cur_el_hdr->flags |= 0x4;
+         cur_el_hdr->flags |= FL_COLLIS;
 
       searches++;
       probe = hh_i_asa_probe(a, probe, header->tier);
@@ -310,7 +312,7 @@ hh_status_t hh_i_asa_reform(void **a, bool forced)
    for (cindex = 0; cindex <= header->highest_index; cindex++) {
       cur_el_hdr = hh_i_asa_getip(a, cindex);
 
-      if ((cur_el_hdr->flags & 0x01) && !(cur_el_hdr->flags & 0x02)) {
+      if ((cur_el_hdr->flags & FL_OCCUPY) && !(cur_el_hdr->flags & FL_DELETE)) {
          memcpy(telbuf + I_TELS_HS * bufels, cur_el_hdr, I_TELS_HS);
          bufels++;
       }
@@ -358,7 +360,7 @@ hh_status_t hh_i_asa_delete(void **a, hh_asa_id_t id)
 
    struct hh_asa_elhdr_s *cur_el_hdr = hh_i_asa_getip(a, ilookup);
 
-   cur_el_hdr->flags |= 0x2;
+   cur_el_hdr->flags |= FL_DELETE;
    header->elements--;
    header->ld_elements++;
 
