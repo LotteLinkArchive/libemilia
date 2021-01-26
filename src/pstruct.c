@@ -241,7 +241,7 @@ void hh_psbuf_pack(hh_psbuf_t *buffer, ...)
 
 hh_status_t hh_psbuf_extract(hh_psbuf_t *target, hh_buf_t *final_buf)
 {
-   *final_buf = hh_buf_mk(&hh_g_alloc);
+   *final_buf = hh_buf_mk(HH_GLOBAL_ALLOC);
    hh_status_t s = hh_buf_resz(final_buf, target->format->data_length, false);
    if (s != HH_STATUS_OKAY)
       return s;
