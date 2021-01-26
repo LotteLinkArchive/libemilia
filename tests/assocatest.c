@@ -35,14 +35,16 @@ int main(void)
 
 #define MKSPAMEL 65535
 
-   for (unsigned int x = 0; x < MKSPAMEL; x++) {
+   unsigned int x;
+
+   for (x = 0; x < MKSPAMEL; x++) {
       if ((ts = aa_set(stuff, aa_vh(stuff, x), x + 1)) != HH_STATUS_OKAY) {
          printf("Spam elements could not be set! (%s)\n", hh_status_str(ts));
          return EXIT_FAILURE;
       }
    }
 
-   for (unsigned int x = 0; x < MKSPAMEL; x++) {
+   for (x = 0; x < MKSPAMEL; x++) {
       if (!aa_in(stuff, aa_vh(stuff, x))) {
          printf("%u not found!\n", x);
          return EXIT_FAILURE;
@@ -54,7 +56,7 @@ int main(void)
       }
    }
 
-   for (unsigned int x = 0; x < MKSPAMEL; x++) {
+   for (x = 0; x < MKSPAMEL; x++) {
       if ((ts = aa_del(stuff, aa_vh(stuff, x))) != HH_STATUS_OKAY) {
          printf("Spam elements could not be deleted! (%u, %s)\n", x,
                 hh_status_str(ts));
@@ -62,7 +64,7 @@ int main(void)
       }
    }
 
-   for (unsigned int x = 0; x < MKSPAMEL; x++) {
+   for (x = 0; x < MKSPAMEL; x++) {
       if (aa_in(stuff, aa_vh(stuff, x))) {
          printf("Spam elements found after deletion!\n");
          return EXIT_FAILURE;

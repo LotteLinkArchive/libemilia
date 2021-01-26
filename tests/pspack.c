@@ -14,9 +14,7 @@ int main(void)
    signed char   sival   = -52;
    unsigned char uival   = 162;
    float         fpval   = -6.25;
-
-   /*                      B 0    b 1    ? 2      H 3    h 4    I 5    i 6    Q
-    * 7    q 8             f 9    d 10 */
+   
    hh_psbuf_pack(&tbuffer,
                  uival,
                  sival,
