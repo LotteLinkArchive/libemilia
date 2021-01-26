@@ -1,6 +1,5 @@
 #pragma once
 #include <stdbool.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -69,19 +68,19 @@
 #define __hh_i_asa_vcast(m) ((void **)&(m))
 
 struct hh_asa_id_s {
-   uint64_t h64s[2];
+   unsigned long long h64s[2];
 } __attribute__((packed));
 
 typedef struct hh_asa_id_s hh_asa_id_t;
 
 struct hh_asa_hdr_s {
    unsigned char tier;
-   uint32_t highest_index;
-   uint32_t elements;
-   uint32_t ld_elements;
-   uint32_t ddepth;
+   unsigned long highest_index;
+   unsigned long elements;
+   unsigned long ld_elements;
+   unsigned long ddepth;
    size_t element_size;
-   uint64_t seed;
+   unsigned long long seed;
    hh_bloom_t bloom;
 
    /* TODO: Support bloom filter */
@@ -96,7 +95,7 @@ struct hh_asa_elhdr_s {
     *           | \--- Lazy-delete
     *           \----- Collided
     */
-   uint8_t flags;
+   unsigned char flags;
    hh_asa_id_t id;
 } __attribute__((packed));
 
@@ -108,8 +107,8 @@ HH_EXTERN hh_asa_id_t hh_i_asa_hrange(void **a, const void *key, size_t amt);
 HH_EXTERN hh_status_t hh_i_asa_init(void **a, size_t el_size);
 HH_EXTERN void hh_i_asa_destroy(void **a);
 HH_EXTERN hh_status_t hh_i_asa_empty(void **a);
-HH_EXTERN void *hh_i_asa_getip(void **a, uint32_t i);
-HH_EXTERN int32_t hh_i_asa_lookup(void **a, hh_asa_id_t id);
+HH_EXTERN void *hh_i_asa_getip(void **a, unsigned long i);
+HH_EXTERN long hh_i_asa_lookup(void **a, hh_asa_id_t id);
 HH_EXTERN hh_status_t hh_i_asa_set(void **a, hh_asa_id_t id, void *value);
 HH_EXTERN hh_status_t hh_i_asa_reform(void **a, bool forced);
 HH_EXTERN hh_status_t hh_i_asa_delete(void **a, hh_asa_id_t id);

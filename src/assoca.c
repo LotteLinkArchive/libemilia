@@ -43,12 +43,13 @@ enum hh_asa_flags_e { FL_OCCUPY = 1, FL_DELETE = 2, FL_COLLIS = 4 };
 
 static const struct hh_asa_hdr_s hh_asa_defhr = { .tier = HH_ASA_MIN_TIER };
 
-static uint32_t hh_i_asa_rup2f32(uint32_t v);
-static hh_status_t hh_i_asa_ensurei(void **a, uint32_t high_as);
+static unsigned long hh_i_asa_rup2f32(unsigned long v);
+static hh_status_t hh_i_asa_ensurei(void **a, unsigned long high_as);
 static bool hh_i_asa_eq_id(hh_asa_id_t ida, hh_asa_id_t idb);
 static hh_status_t hh_i_asa_grow(void **a);
-static uint32_t hh_i_asa_probe(void **a, uint32_t key, unsigned char tier);
-static uint32_t hh_i_asa_freeslots(void **a);
+static unsigned long hh_i_asa_probe(void **a, unsigned long key,
+                                    unsigned char tier);
+static unsigned long hh_i_asa_freeslots(void **a);
 
 /* Public Functions --------------------------------------------------------- */
 
@@ -118,7 +119,7 @@ hh_status_t hh_i_asa_empty(void **a)
 
    /* Reinitialize the hash table while keeping the seed and element size */
    size_t tes = header->element_size;
-   uint64_t seed = header->seed;
+   unsigned long long seed = header->seed;
 
    /* Depends on init usage of realloc instead of malloc */
    hh_status_t s = hh_i_asa_init(a, tes);
@@ -132,7 +133,7 @@ hh_status_t hh_i_asa_empty(void **a)
    return HH_STATUS_OKAY;
 }
 
-void *hh_i_asa_getip(void **a, uint32_t i)
+void *hh_i_asa_getip(void **a, unsigned long i)
 {
    /* This function returns a pointer to the element header at the given index
     * and returns NULL if the given index exceeds the highest available index.
@@ -146,30 +147,25 @@ void *hh_i_asa_getip(void **a, uint32_t i)
    return i > header->highest_index ? NULL : b;
 }
 
-int32_t hh_i_asa_lookup(void **a, hh_asa_id_t id)
+long hh_i_asa_lookup(void **a, hh_asa_id_t id)
 {
    I_PREPHDR;
 
    if (!hh_bloom_in(&header->bloom, &id, sizeof(id)))
       return -1;
 
-   uint32_t probe;
-   struct hh_asa_elhdr_s *cur_el_hdr;
-   signed char tier;
-   uint32_t searches;
-
-   for (tier = header->tier; tier >= HH_ASA_MIN_TIER; tier--) {
+   for (signed char tier = header->tier; tier >= HH_ASA_MIN_TIER; tier--) {
       /* The initial probe is always just the full hash but masked with the
        * tier mask. Only the low 64 bits of the full hash are ever used. The
        * rest are used for the comparison process.
        */
 
-      probe = id.h64s[0] & I_TIERCLM((unsigned char)tier);
-      uint32_t tiprob = probe;
-      searches = 0;
+      unsigned long tiprob,
+         probe = tiprob = id.h64s[0] & I_TIERCLM((unsigned char)tier);
+      unsigned long searches = 0;
 
       for (;;) {
-         cur_el_hdr = hh_i_asa_getip(a, probe);
+         struct hh_asa_elhdr_s *cur_el_hdr = hh_i_asa_getip(a, probe);
          if (!cur_el_hdr)
             break; /* Index too high - unoccupied, return -1 */
 
@@ -224,7 +220,7 @@ hh_status_t hh_i_asa_set(void **a, hh_asa_id_t id, void *value)
       return gstat;
 
    /* If the element already exists, set the value (Python-style) */
-   int32_t ilookup = hh_i_asa_lookup(a, id);
+   long ilookup = hh_i_asa_lookup(a, id);
    if (ilookup >= 0) {
       memcpy((struct hh_asa_elhdr_s *)hh_i_asa_getip(a, ilookup) + 1, value,
              header->element_size);
@@ -233,11 +229,11 @@ hh_status_t hh_i_asa_set(void **a, hh_asa_id_t id, void *value)
 
    hh_bloom_add(&header->bloom, &id, sizeof(id));
 
-   uint32_t probe = id.h64s[0] & I_TIERCLM(header->tier);
-   uint32_t tiprobe = probe;
+   unsigned long tiprobe,
+      probe = tiprobe = id.h64s[0] & I_TIERCLM(header->tier);
    struct hh_asa_elhdr_s *cur_el_hdr;
-   uint8_t flagset = 0;
-   uint32_t searches = 0;
+   unsigned char flagset = 0;
+   unsigned long searches = 0;
 
    /* It miiight be possible for this to loop forever, maybe. No, actually, I
     * don't think it will. Maybe. */
@@ -303,8 +299,8 @@ hh_status_t hh_i_asa_reform(void **a, bool forced)
       return HH_STATUS_OKAY; /* Table doesn't need downscaling */
 
    char *telbuf = malloc(header->elements * I_TELS_HS);
-   uint32_t bufels = 0;
-   uint32_t cindex;
+   unsigned long bufels = 0;
+   unsigned long cindex;
 
    if (!telbuf)
       return HH_OUT_OF_MEMORY;
@@ -327,7 +323,7 @@ hh_status_t hh_i_asa_reform(void **a, bool forced)
    I_REINHDR;
 
    /* This is just how we determine the new tier. It's a bit of a mess. */
-   uint32_t bufcp2 = hh_i_asa_rup2f32(bufels) - 1;
+   unsigned long bufcp2 = hh_i_asa_rup2f32(bufels) - 1;
    unsigned char match_tier = HH_ASA_MIN_TIER;
    for (cindex = HH_ASA_MIN_TIER; cindex <= HH_ASA_MAX_TIER; cindex++) {
       if (I_TIERCLM(cindex) == bufcp2) {
@@ -354,7 +350,7 @@ hh_status_t hh_i_asa_delete(void **a, hh_asa_id_t id)
 {
    I_PREPHDR;
 
-   int32_t ilookup = hh_i_asa_lookup(a, id);
+   long ilookup = hh_i_asa_lookup(a, id);
    if (ilookup < 0)
       return HH_EL_NOT_FOUND;
 
@@ -373,7 +369,7 @@ hh_status_t hh_i_asa_delete(void **a, hh_asa_id_t id)
 
 /* Static Definitions ------------------------------------------------------- */
 
-static uint32_t hh_i_asa_rup2f32(uint32_t v)
+static unsigned long hh_i_asa_rup2f32(unsigned long v)
 {
    /* https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2 */
 
@@ -388,7 +384,8 @@ static uint32_t hh_i_asa_rup2f32(uint32_t v)
    return v;
 }
 
-static uint32_t hh_i_asa_probe(void **a, uint32_t key, unsigned char tier)
+static unsigned long hh_i_asa_probe(void **a, unsigned long key,
+                                    unsigned char tier)
 {
 #ifdef HH_I_ASA_RANDOMP
    I_PREPHDR;
@@ -399,7 +396,7 @@ static uint32_t hh_i_asa_probe(void **a, uint32_t key, unsigned char tier)
 #endif
 }
 
-static hh_status_t hh_i_asa_ensurei(void **a, uint32_t high_as)
+static hh_status_t hh_i_asa_ensurei(void **a, unsigned long high_as)
 {
    /* Very lackluster memory saving technique - only allocate up to the highest
     * occupied index in the table's main array.
@@ -407,7 +404,7 @@ static hh_status_t hh_i_asa_ensurei(void **a, uint32_t high_as)
 
    I_PREPHDR;
 
-   uint32_t ohil = header->highest_index + 1;
+   unsigned long ohil = header->highest_index + 1;
    size_t olsize = HH_ASA_HR_SZ + (size_t)ohil * I_TELS_HS;
    size_t nwsize = HH_ASA_HR_SZ + ((size_t)high_as + 1) * I_TELS_HS;
 
@@ -451,7 +448,7 @@ static hh_status_t hh_i_asa_grow(void **a)
    return HH_STATUS_OKAY;
 }
 
-static uint32_t hh_i_asa_freeslots(void **a)
+static unsigned long hh_i_asa_freeslots(void **a)
 {
    I_PREPHDR;
 
