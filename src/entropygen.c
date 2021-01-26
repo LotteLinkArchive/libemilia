@@ -15,8 +15,8 @@ static uint8_t hh_entropy_p8()
       v ^= reduce8(rand()) ^ reduce8(t);
       union {
          uint32_t hash;
-         uint8_t  parts[4];
-      } hash = {.hash = XXH32(&v, sizeof(v), 0)};
+         uint8_t parts[4];
+      } hash = { .hash = XXH32(&v, sizeof(v), 0) };
       v ^= hash.parts[0] ^ hash.parts[1] ^ hash.parts[2] ^ hash.parts[3];
    } while ((clock() - t) < (CLOCKS_PER_SEC >> 8));
 
@@ -27,11 +27,13 @@ static uint8_t hh_entropy_p8()
 uint64_t hh_entropy_seed64()
 {
    union {
-      uint8_t  s[8];
+      uint8_t s[8];
       uint64_t f;
    } pri;
 
-   for (unsigned int x = 0; x < 8; x++) { pri.s[x] ^= hh_entropy_p8(); }
+   for (unsigned int x = 0; x < 8; x++) {
+      pri.s[x] ^= hh_entropy_p8();
+   }
 
    return pri.f;
 }

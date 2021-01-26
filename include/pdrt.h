@@ -37,15 +37,15 @@ enum hh_pdrt_types_e {
 typedef char hh_pdrt_type_t;
 
 union hh_pdrt_buft_u {
-   void *   ptr;
+   void *ptr;
    uint64_t uint;
-   int64_t  sint;
-   double   real;
-   bool     boolt;
+   int64_t sint;
+   double real;
+   bool boolt;
 };
 
 struct hh_pdrt_el_s {
    union hh_pdrt_buft_u buf;
-   uint64_t             len;
-   hh_pdrt_type_t       type;
+   uint64_t len;
+   hh_pdrt_type_t type;
 };

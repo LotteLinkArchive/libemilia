@@ -63,14 +63,14 @@
 
 #include "../include/entropygen.h"
 
-#define NN       HH_MT19937_NN
-#define MM       156
+#define NN HH_MT19937_NN
+#define MM 156
 #define MATRIX_A UINT64_C(0xB5026F5AA96619E9)
-#define UM       UINT64_C(0xFFFFFFFF80000000)
-#define LM       UINT64_C(0x7FFFFFFF)
-#define LB                         \
-   {                               \
-      .mti = NN + 1, .init = false \
+#define UM UINT64_C(0xFFFFFFFF80000000)
+#define LM UINT64_C(0x7FFFFFFF)
+#define LB                                                                     \
+   {                                                                           \
+      .mti = NN + 1, .init = false                                             \
    }
 
 hh_mt19937_ro_t hh_mt19937_global = LB;
@@ -81,56 +81,55 @@ hh_mt19937_ro_t hh_init_mt(void)
    return out;
 }
 
-void hh_mt_init_basic(hh_mt19937_ro_t * o, bool pi_check)
+void hh_mt_init_basic(hh_mt19937_ro_t *o, bool pi_check)
 {
-   if (pi_check && o->init) return;
+   if (pi_check && o->init)
+      return;
 
    hh_mt_init_genrand64(o, hh_entropy_seed64());
 }
 
-void hh_mt_init_genrand64(hh_mt19937_ro_t * o, uint64_t seed)
+void hh_mt_init_genrand64(hh_mt19937_ro_t *o, uint64_t seed)
 {
    o->mt[0] = seed;
    for (o->mti = 1; o->mti < NN; o->mti++)
-      o->mt[o->mti] = (UINT64_C(6364136223846793005)
-                          * (o->mt[o->mti - 1] ^ (o->mt[o->mti - 1] >> 62))
-                       + o->mti);
+      o->mt[o->mti] = (UINT64_C(6364136223846793005) *
+                          (o->mt[o->mti - 1] ^ (o->mt[o->mti - 1] >> 62)) +
+                       o->mti);
 
    o->init = true;
 }
 
-void hh_mt_init_by_array64(hh_mt19937_ro_t * o,
-                           uint64_t          init_key[],
-                           uint64_t          key_length)
+void hh_mt_init_by_array64(hh_mt19937_ro_t *o, uint64_t init_key[],
+                           uint64_t key_length)
 {
    unsigned int i, j;
-   uint64_t     k;
+   uint64_t k;
    hh_mt_init_genrand64(o, UINT64_C(19650218));
    i = 1;
    j = 0;
    k = (NN > key_length ? NN : key_length);
    for (; k; k--) {
-      o->mt[i] = (o->mt[i]
-                  ^ ((o->mt[i - 1] ^ (o->mt[i - 1] >> 62))
-                     * UINT64_C(3935559000370003845)))
-                 + init_key[j] + j;
+      o->mt[i] = (o->mt[i] ^ ((o->mt[i - 1] ^ (o->mt[i - 1] >> 62)) *
+                              UINT64_C(3935559000370003845))) +
+                 init_key[j] + j;
       i++;
       j++;
       if (i >= NN) {
          o->mt[0] = o->mt[NN - 1];
-         i        = 1;
+         i = 1;
       }
-      if (j >= key_length) j = 0;
+      if (j >= key_length)
+         j = 0;
    }
    for (k = NN - 1; k; k--) {
-      o->mt[i] = (o->mt[i]
-                  ^ ((o->mt[i - 1] ^ (o->mt[i - 1] >> 62))
-                     * UINT64_C(2862933555777941757)))
-                 - i;
+      o->mt[i] = (o->mt[i] ^ ((o->mt[i - 1] ^ (o->mt[i - 1] >> 62)) *
+                              UINT64_C(2862933555777941757))) -
+                 i;
       i++;
       if (i >= NN) {
          o->mt[0] = o->mt[NN - 1];
-         i        = 1;
+         i = 1;
       }
    }
 
@@ -139,25 +138,26 @@ void hh_mt_init_by_array64(hh_mt19937_ro_t * o,
    o->init = true;
 }
 
-uint64_t hh_mt_genrand64_int64(hh_mt19937_ro_t * o)
+uint64_t hh_mt_genrand64_int64(hh_mt19937_ro_t *o)
 {
-   int             i;
-   uint64_t        x;
-   static uint64_t mag01[2] = {UINT64_C(0), MATRIX_A};
+   int i;
+   uint64_t x;
+   static uint64_t mag01[2] = { UINT64_C(0), MATRIX_A };
 
    if (o->mti >= NN) {
-      if (o->mti == NN + 1) hh_mt_init_genrand64(o, UINT64_C(5489));
+      if (o->mti == NN + 1)
+         hh_mt_init_genrand64(o, UINT64_C(5489));
 
       for (i = 0; i < NN - MM; i++) {
-         x        = (o->mt[i] & UM) | (o->mt[i + 1] & LM);
+         x = (o->mt[i] & UM) | (o->mt[i + 1] & LM);
          o->mt[i] = o->mt[i + MM] ^ (x >> 1) ^ mag01[(int)(x & UINT64_C(1))];
       }
       for (; i < NN - 1; i++) {
          x = (o->mt[i] & UM) | (o->mt[i + 1] & LM);
-         o->mt[i]
-            = o->mt[i + (MM - NN)] ^ (x >> 1) ^ mag01[(int)(x & UINT64_C(1))];
+         o->mt[i] =
+            o->mt[i + (MM - NN)] ^ (x >> 1) ^ mag01[(int)(x & UINT64_C(1))];
       }
-      x             = (o->mt[NN - 1] & UM) | (o->mt[0] & LM);
+      x = (o->mt[NN - 1] & UM) | (o->mt[0] & LM);
       o->mt[NN - 1] = o->mt[MM - 1] ^ (x >> 1) ^ mag01[(int)(x & UINT64_C(1))];
 
       o->mti = 0;
