@@ -6,14 +6,14 @@
 
 #include "../include/util.h"
 
-void *hh_brealloc(uint64_t id, void *target, size_t newsize)
+void *hh_brealloc(unsigned long long id, void *target, size_t newsize)
 {
    __hh_unused(id);
 
    return realloc(target, newsize);
 }
 
-void hh_bfree(uint64_t id, void *target)
+void hh_bfree(unsigned long long id, void *target)
 {
    __hh_unused(id);
 

@@ -7,10 +7,10 @@
 #include "status.h"
 
 struct hh_alloc_s {
-   uint64_t id;
+   unsigned long long id;
 
-   void *(*realloc)(uint64_t, void *, size_t);
-   void (*free)(uint64_t, void *);
+   void *(*realloc)(unsigned long long, void *, size_t);
+   void (*free)(unsigned long long, void *);
 };
 
 typedef struct hh_alloc_s hh_alloc_t;
