@@ -24,6 +24,8 @@ struct hh_buf_s {
 
 typedef struct hh_buf_s hh_buf_t;
 
+#define HH_GLOBAL_ALLOC (&hh_g_alloc)
+
 extern const hh_alloc_t hh_g_alloc;
 extern const hh_buf_t hh_def_buf;
 
