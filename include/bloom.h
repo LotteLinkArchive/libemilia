@@ -2,7 +2,6 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
 
 #include "status.h"
 
@@ -11,7 +10,7 @@ struct hh_bloom_s {
    size_t capacity;
 
    char *filter;
-   uint64_t seed;
+   unsigned long long seed;
 };
 
 typedef struct hh_bloom_s hh_bloom_t;

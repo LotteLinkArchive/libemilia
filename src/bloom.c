@@ -23,7 +23,8 @@ hh_status_t hh_bloom_mk(hh_bloom_t *target, size_t bytes)
 }
 
 #define XHC                                                                    \
-   uint64_t xh = XXH3_64bits_withSeed(data, size, (XXH64_hash_t)target->seed)
+   unsigned long long xh =                                                     \
+      XXH3_64bits_withSeed(data, size, (XXH64_hash_t)target->seed)
 
 void hh_bloom_add(hh_bloom_t *target, const void *data, size_t size)
 {
