@@ -2,13 +2,13 @@
  *    P A N D E M O N I C A   A S S O C I A T I V E   A R R A Y  |  A L P H A
  *  ---------------------------------------------------------------------------
  *   This is a very complicated associative array implementation, created as a
- *   component of HexHive. To interface with it, you will absolutely need the
+ *   component of libemilia. To interface with it, you will absolutely need the
  *   provided header file (assoca.h), as it contains various macros intended
  *   to massively simplify the process of using this data structure.
  *  ---------------------------------------------------------------------------
  *   When downloading this, you should've been provided with a copy of the
  *   LICENSE document. If not, you can find it here:
- *   https://git.lotte.link/naphtha/emilia/src/branch/master/LICENSE
+ *   https://git.lotte.link/naphtha/libemilia/src/branch/master/LICENSE
  *  ---------------------------------------------------------------------------
  *   Copyright (c) Naphtha Nepanthez 2021 <naphtha@lotte.link>
  * \*-------------------------------------------------------------------------*/
