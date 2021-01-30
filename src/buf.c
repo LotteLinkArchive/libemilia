@@ -6,29 +6,29 @@
 
 #include "../include/util.h"
 
-void *hh_brealloc(unsigned long long id, void *target, size_t newsize)
+void *em_brealloc(unsigned long long id, void *target, size_t newsize)
 {
-   __hh_unused(id);
+   __em_unused(id);
 
    return realloc(target, newsize);
 }
 
-void hh_bfree(unsigned long long id, void *target)
+void em_bfree(unsigned long long id, void *target)
 {
-   __hh_unused(id);
+   __em_unused(id);
 
    free(target);
 }
 
-const hh_alloc_t hh_g_alloc = { .realloc = hh_brealloc,
-                                .free = hh_bfree,
+const em_alloc_t em_g_alloc = { .realloc = em_brealloc,
+                                .free = em_bfree,
                                 .id = 0 };
 
-const hh_buf_t hh_def_buf = { .bytes = 0, .data = NULL, .mi = &hh_g_alloc };
+const em_buf_t em_def_buf = { .bytes = 0, .data = NULL, .mi = &em_g_alloc };
 
-hh_buf_t hh_buf_mk(const hh_alloc_t *allocator)
+em_buf_t em_buf_mk(const em_alloc_t *allocator)
 {
-   hh_buf_t template = hh_def_buf;
+   em_buf_t template = em_def_buf;
 
    if (allocator)
       template.mi = allocator;
@@ -36,23 +36,23 @@ hh_buf_t hh_buf_mk(const hh_alloc_t *allocator)
    return template;
 }
 
-hh_status_t hh_buf_resz(hh_buf_t *buffer, size_t bytes, bool zero)
+em_status_t em_buf_resz(em_buf_t *buffer, size_t bytes, bool zero)
 {
    size_t old_size = buffer->bytes;
 
    buffer->mi->realloc(buffer->mi->id, buffer->data, bytes);
    if (!buffer->data)
-      return HH_OUT_OF_MEMORY;
+      return EM_OUT_OF_MEMORY;
 
    if (zero && bytes > old_size)
       memset((char *)buffer->data + old_size, 0, bytes - old_size);
 
    buffer->bytes = bytes;
 
-   return HH_STATUS_OKAY;
+   return EM_STATUS_OKAY;
 }
 
-void hh_buf_free(hh_buf_t *buffer)
+void em_buf_free(em_buf_t *buffer)
 {
    if (buffer->data)
       buffer->mi->free(buffer->mi->id, buffer);

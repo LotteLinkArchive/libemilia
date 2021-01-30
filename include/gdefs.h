@@ -1,7 +1,7 @@
 #pragma once
 
 #ifdef __cplusplus
-#define HH_EXTERN extern "C"
+#define EM_EXTERN extern "C"
 #else
-#define HH_EXTERN extern
+#define EM_EXTERN extern
 #endif

@@ -1,4 +1,4 @@
-hexhive_sources = [
+emilia_sources = [
 	'status.c',
 	'pstruct.c',
 	'svec.c',
@@ -8,4 +8,4 @@ hexhive_sources = [
 	'buf.c',
 	'bloom.c'
 ]
-hexhive = library('hexhive', hexhive_sources, version : '0.0.0', soversion : '0', include_directories : hexhive_incdir, dependencies : [xxhash_dep], install : true)
+emilia = library('emilia', emilia_sources, version : '0.0.0', soversion : '0', include_directories : emilia_incdir, dependencies : [xxhash_dep], install : true)

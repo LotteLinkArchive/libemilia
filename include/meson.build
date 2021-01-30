@@ -1,8 +1,8 @@
-hexhive_headers = [
+emilia_headers = [
 	'gdefs.h',
 	'status.h',
 	'pstruct.h',
-	'hexhive.h',
+	'emilia.h',
 	'svec.h',
 	'mt19937-64.h',
 	'util.h',
@@ -11,4 +11,4 @@ hexhive_headers = [
 	'buf.h',
 	'bloom.h'
 ]
-install_headers(hexhive_headers, subdir : 'hexhive')
+install_headers(emilia_headers, subdir : 'emilia')

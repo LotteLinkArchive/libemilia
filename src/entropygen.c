@@ -4,7 +4,7 @@
 #include <time.h>
 #include <xxhash.h>
 
-static uint8_t hh_entropy_p8()
+static uint8_t em_entropy_p8()
 {
 #define reduce8(y) (uint8_t)((y)&0xFF)
    uint8_t v = reduce8(time(NULL)) ^ reduce8(rand());
@@ -24,7 +24,7 @@ static uint8_t hh_entropy_p8()
 #undef reduce8
 }
 
-uint64_t hh_entropy_seed64()
+uint64_t em_entropy_seed64()
 {
    union {
       uint8_t s[8];
@@ -32,7 +32,7 @@ uint64_t hh_entropy_seed64()
    } pri;
 
    for (unsigned int x = 0; x < 8; x++) {
-      pri.s[x] ^= hh_entropy_p8();
+      pri.s[x] ^= em_entropy_p8();
    }
 
    return pri.f;

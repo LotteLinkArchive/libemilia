@@ -5,7 +5,7 @@
 
 int main(void)
 {
-   hh_status_t ts;
+   em_status_t ts;
 
    int * stuff = aa_make(int);
    if (!stuff) {
@@ -18,8 +18,8 @@ int main(void)
       return EXIT_FAILURE;
    }
 
-   if ((ts = aa_set(stuff, aa_sh(stuff, "EL01"), -4242)) != HH_STATUS_OKAY) {
-      printf("EL01 could not be set on init! (%s)\n", hh_status_str(ts));
+   if ((ts = aa_set(stuff, aa_sh(stuff, "EL01"), -4242)) != EM_STATUS_OKAY) {
+      printf("EL01 could not be set on init! (%s)\n", em_status_str(ts));
       return EXIT_FAILURE;
    }
 
@@ -38,8 +38,8 @@ int main(void)
    unsigned int x;
 
    for (x = 0; x < MKSPAMEL; x++) {
-      if ((ts = aa_set(stuff, aa_vh(stuff, x), x + 1)) != HH_STATUS_OKAY) {
-         printf("Spam elements could not be set! (%s)\n", hh_status_str(ts));
+      if ((ts = aa_set(stuff, aa_vh(stuff, x), x + 1)) != EM_STATUS_OKAY) {
+         printf("Spam elements could not be set! (%s)\n", em_status_str(ts));
          return EXIT_FAILURE;
       }
    }
@@ -57,9 +57,9 @@ int main(void)
    }
 
    for (x = 0; x < MKSPAMEL; x++) {
-      if ((ts = aa_del(stuff, aa_vh(stuff, x))) != HH_STATUS_OKAY) {
+      if ((ts = aa_del(stuff, aa_vh(stuff, x))) != EM_STATUS_OKAY) {
          printf("Spam elements could not be deleted! (%u, %s)\n", x,
-                hh_status_str(ts));
+                em_status_str(ts));
          return EXIT_FAILURE;
       }
    }

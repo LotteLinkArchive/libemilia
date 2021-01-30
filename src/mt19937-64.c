@@ -63,7 +63,7 @@
 
 #include "../include/entropygen.h"
 
-#define NN HH_MT19937_NN
+#define NN EM_MT19937_NN
 #define MM 156
 #define MATRIX_A UINT64_C(0xB5026F5AA96619E9)
 #define UM UINT64_C(0xFFFFFFFF80000000)
@@ -73,23 +73,23 @@
       .mti = NN + 1, .init = false                                             \
    }
 
-hh_mt19937_ro_t hh_mt19937_global = LB;
+em_mt19937_ro_t em_mt19937_global = LB;
 
-hh_mt19937_ro_t hh_init_mt(void)
+em_mt19937_ro_t em_init_mt(void)
 {
-   hh_mt19937_ro_t out = LB;
+   em_mt19937_ro_t out = LB;
    return out;
 }
 
-void hh_mt_init_basic(hh_mt19937_ro_t *o, bool pi_check)
+void em_mt_init_basic(em_mt19937_ro_t *o, bool pi_check)
 {
    if (pi_check && o->init)
       return;
 
-   hh_mt_init_genrand64(o, hh_entropy_seed64());
+   em_mt_init_genrand64(o, em_entropy_seed64());
 }
 
-void hh_mt_init_genrand64(hh_mt19937_ro_t *o, uint64_t seed)
+void em_mt_init_genrand64(em_mt19937_ro_t *o, uint64_t seed)
 {
    o->mt[0] = seed;
    for (o->mti = 1; o->mti < NN; o->mti++)
@@ -100,12 +100,12 @@ void hh_mt_init_genrand64(hh_mt19937_ro_t *o, uint64_t seed)
    o->init = true;
 }
 
-void hh_mt_init_by_array64(hh_mt19937_ro_t *o, uint64_t init_key[],
+void em_mt_init_by_array64(em_mt19937_ro_t *o, uint64_t init_key[],
                            uint64_t key_length)
 {
    unsigned int i, j;
    uint64_t k;
-   hh_mt_init_genrand64(o, UINT64_C(19650218));
+   em_mt_init_genrand64(o, UINT64_C(19650218));
    i = 1;
    j = 0;
    k = (NN > key_length ? NN : key_length);
@@ -138,7 +138,7 @@ void hh_mt_init_by_array64(hh_mt19937_ro_t *o, uint64_t init_key[],
    o->init = true;
 }
 
-uint64_t hh_mt_genrand64_int64(hh_mt19937_ro_t *o)
+uint64_t em_mt_genrand64_int64(em_mt19937_ro_t *o)
 {
    int i;
    uint64_t x;
@@ -146,7 +146,7 @@ uint64_t hh_mt_genrand64_int64(hh_mt19937_ro_t *o)
 
    if (o->mti >= NN) {
       if (o->mti == NN + 1)
-         hh_mt_init_genrand64(o, UINT64_C(5489));
+         em_mt_init_genrand64(o, UINT64_C(5489));
 
       for (i = 0; i < NN - MM; i++) {
          x = (o->mt[i] & UM) | (o->mt[i + 1] & LM);

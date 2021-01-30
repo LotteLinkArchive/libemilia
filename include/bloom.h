@@ -5,7 +5,7 @@
 
 #include "status.h"
 
-struct hh_bloom_s {
+struct em_bloom_s {
    size_t bytes;
    size_t capacity;
 
@@ -13,10 +13,10 @@ struct hh_bloom_s {
    unsigned long long seed;
 };
 
-typedef struct hh_bloom_s hh_bloom_t;
+typedef struct em_bloom_s em_bloom_t;
 
-hh_status_t hh_bloom_mk(hh_bloom_t *target, size_t bytes);
-void hh_bloom_add(hh_bloom_t *target, const void *data, size_t size);
-bool hh_bloom_in(hh_bloom_t *target, const void *data, size_t size);
-void hh_bloom_empty(hh_bloom_t *target);
-void hh_bloom_free(hh_bloom_t *target);
+em_status_t em_bloom_mk(em_bloom_t *target, size_t bytes);
+void em_bloom_add(em_bloom_t *target, const void *data, size_t size);
+bool em_bloom_in(em_bloom_t *target, const void *data, size_t size);
+void em_bloom_empty(em_bloom_t *target);
+void em_bloom_free(em_bloom_t *target);

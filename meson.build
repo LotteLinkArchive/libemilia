@@ -1,10 +1,10 @@
-project('hexhive', 'c')
+project('emilia', 'c')
 
 cc = meson.get_compiler('c')
 xxhash_dep = cc.find_library('xxhash', required : true)
 
-hexhive_incdir = include_directories('include')
+emilia_incdir = include_directories('include')
 subdir('include')
 subdir('src')
-hexhive_dep = declare_dependency(include_directories : hexhive_incdir, link_with : hexhive)
+emilia_dep = declare_dependency(include_directories : emilia_incdir, link_with : emilia)
 subdir('tests')

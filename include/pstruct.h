@@ -11,27 +11,27 @@
 
 /* WARNING: PStructs are NOT threadsafe! */
 
-enum hh_pstruct_types_e {
-   HH_PSTYPE_PAD = 'x', /* 1 B */
-   HH_PSTYPE_U8 = 'B', /* 1 B */
-   HH_PSTYPE_I8 = 'b', /* 1 B */
-   HH_PSTYPE_BOOL = '?', /* 1 B */
+enum em_pstruct_types_e {
+   EM_PSTYPE_PAD = 'x', /* 1 B */
+   EM_PSTYPE_U8 = 'B', /* 1 B */
+   EM_PSTYPE_I8 = 'b', /* 1 B */
+   EM_PSTYPE_BOOL = '?', /* 1 B */
 
-   HH_PSTYPE_U16 = 'H', /* 2 B */
-   HH_PSTYPE_I16 = 'h', /* 2 B */
+   EM_PSTYPE_U16 = 'H', /* 2 B */
+   EM_PSTYPE_I16 = 'h', /* 2 B */
 
-   HH_PSTYPE_U32 = 'I', /* 4 B */
-   HH_PSTYPE_I32 = 'i', /* 4 B */
+   EM_PSTYPE_U32 = 'I', /* 4 B */
+   EM_PSTYPE_I32 = 'i', /* 4 B */
 
-   HH_PSTYPE_U64 = 'Q', /* 8 B */
-   HH_PSTYPE_I64 = 'q', /* 8 B */
+   EM_PSTYPE_U64 = 'Q', /* 8 B */
+   EM_PSTYPE_I64 = 'q', /* 8 B */
 
-   HH_PSTYPE_FLOAT = 'f', /* 4 B */
-   HH_PSTYPE_DOUBLE = 'd' /* 8 B */
+   EM_PSTYPE_FLOAT = 'f', /* 4 B */
+   EM_PSTYPE_DOUBLE = 'd' /* 8 B */
 };
 
 /* Union of all of the available primitive types */
-union hh_pstypebuf_u {
+union em_pstypebuf_u {
    uint8_t uint8;
    int8_t int8;
    bool bool8;
@@ -45,10 +45,10 @@ union hh_pstypebuf_u {
    double double64;
 };
 
-typedef union hh_pstypebuf_u hh_pstype_t;
+typedef union em_pstypebuf_u em_pstype_t;
 
 /* Representation of a pstruct field */
-struct hh_psfield_s {
+struct em_psfield_s {
    char type;
 
    size_t bytes;
@@ -56,10 +56,10 @@ struct hh_psfield_s {
    void *data;
 };
 
-typedef struct hh_psfield_s hh_psfld_t;
+typedef struct em_psfield_s em_psfld_t;
 
 /* Representation of a pstruct */
-struct hh_psformat_s {
+struct em_psformat_s {
    /* The original format string, e.g "BbBbxxxxIIII" */
    const char *format_string;
 
@@ -75,25 +75,25 @@ struct hh_psformat_s {
    unsigned int variables;
 
    /* Will be a non-zero value if creation of the pstruct failed. */
-   hh_status_t status;
+   em_status_t status;
 };
 
-typedef struct hh_psformat_s hh_psfmt_t;
+typedef struct em_psformat_s em_psfmt_t;
 
 /* Modifiable pstruct buffer */
-struct hh_psbuf_s {
+struct em_psbuf_s {
    /* The actual data */
-   struct hh_psfield_s *fields;
+   struct em_psfield_s *fields;
    uint8_t *buffer;
 
    /* The encoding/decoding format */
-   struct hh_psformat_s *format;
+   struct em_psformat_s *format;
 
    /* The status code. Will be non-zero if failed to create the buffer object */
-   hh_status_t status;
+   em_status_t status;
 };
 
-typedef struct hh_psbuf_s hh_psbuf_t;
+typedef struct em_psbuf_s em_psbuf_t;
 
 /* Use this to make a Portable/Primitive Struct Format.
  * Valid format string types: xBb?HhIiQqfd (See above)
@@ -102,52 +102,52 @@ typedef struct hh_psbuf_s hh_psbuf_t;
  * Formats can be re-used throughout the lifetime of the program, and are thread
  * safe.
  */
-HH_EXTERN hh_psfmt_t hh_make_psformat(const char *format_string);
+EM_EXTERN em_psfmt_t em_make_psformat(const char *format_string);
 
 /* Use this to create a Portable/Primitive Struct Buffer.
  * This is a buffer, based on a format, that is fully mutable. You cannot change
  * a buffer's format once it has been created. Feed it `data` if you already
  * have existing data to read. If you don't, use NULL. You MUST destroy a buffer
- * (with `hh_psfreebuf`) when you are done with it. You can, however, keep
+ * (with `em_psfreebuf`) when you are done with it. You can, however, keep
  * re-using a single buffer throughout the program if you wish.
  */
-HH_EXTERN hh_psbuf_t hh_psmkbuf(hh_psfmt_t *format, void *data);
+EM_EXTERN em_psbuf_t em_psmkbuf(em_psfmt_t *format, void *data);
 
 /* Updates all of the data in a buffer with the provided data. Cannot be NULL.
  * Input data must be the same length as buffer.format->data_length, or expect
  * undefined behaviour.
  */
-HH_EXTERN void hh_psupdbuf(hh_psbuf_t *buffer, void *data);
+EM_EXTERN void em_psupdbuf(em_psbuf_t *buffer, void *data);
 
-/* Destroy a buffer. Will return HH_DOUBLE_FREE if you already called this on a
+/* Destroy a buffer. Will return EM_DOUBLE_FREE if you already called this on a
  * buffer before. This removes the built-in field abstraction AND the produced
  * data.
  */
-HH_EXTERN hh_status_t hh_psfreebuf(hh_psbuf_t *buffer);
+EM_EXTERN em_status_t em_psfreebuf(em_psbuf_t *buffer);
 
 /* Set/get a value in a buffer. Type is automatically determined and auto-picked
  * from the union depending on the index. DO NOT go out of bounds.
  */
-HH_EXTERN void hh_psfield_set(hh_psbuf_t *buffer, unsigned int index,
-                              hh_pstype_t value);
-HH_EXTERN hh_pstype_t hh_psfield_get(hh_psbuf_t *buffer, unsigned int index);
+EM_EXTERN void em_psfield_set(em_psbuf_t *buffer, unsigned int index,
+                              em_pstype_t value);
+EM_EXTERN em_pstype_t em_psfield_get(em_psbuf_t *buffer, unsigned int index);
 
 /* Abstractions for the set/get functions so that you don't have to use a union.
  * In most cases, you'll only need eset/eget. You should try to use these as
  * much as possible, they're easier to follow.
  */
-#define hh_psfield_eset(buffer, index, value)                                  \
+#define em_psfield_eset(buffer, index, value)                                  \
    do {                                                                        \
       __typeof__(value) _ESVTEMP = (value);                                    \
-      hh_pstype_t _ESVUTEMP;                                                   \
+      em_pstype_t _ESVUTEMP;                                                   \
       memcpy(&_ESVUTEMP, &_ESVTEMP, sizeof(_ESVTEMP));                         \
-      hh_psfield_set(buffer, index, _ESVUTEMP);                                \
+      em_psfield_set(buffer, index, _ESVUTEMP);                                \
    } while (0)
 
-#define hh_psfield_eget(buffer, index, type)                                   \
+#define em_psfield_eget(buffer, index, type)                                   \
    ({                                                                          \
       type _ESVTEMP;                                                           \
-      hh_pstype_t _ESVUTEMP = hh_psfield_get(buffer, index);                   \
+      em_pstype_t _ESVUTEMP = em_psfield_get(buffer, index);                   \
       memcpy(&_ESVTEMP, &_ESVUTEMP, sizeof(type));                             \
       _ESVTEMP;                                                                \
    })
@@ -155,9 +155,9 @@ HH_EXTERN hh_pstype_t hh_psfield_get(hh_psbuf_t *buffer, unsigned int index);
 /* This abstraction macro is specifically intended for filling an external
  * variable. You'll rarely have to use this, in most cases `eget` will do.
  */
-#define hh_psfield_evget(buffer, index, variable)                              \
+#define em_psfield_evget(buffer, index, variable)                              \
    do {                                                                        \
-      hh_pstype_t _ESVUTEMP = hh_psfield_get(buffer, index);                   \
+      em_pstype_t _ESVUTEMP = em_psfield_get(buffer, index);                   \
       memcpy(&variable, &_ESVUTEMP, sizeof(variable));                         \
    } while (0)
 
@@ -165,11 +165,11 @@ HH_EXTERN hh_pstype_t hh_psfield_get(hh_psbuf_t *buffer, unsigned int index);
  * arguments must be exactly the right type and there must be exactly the right
  * amount of them (see buffer.format->variables).
  */
-HH_EXTERN void hh_psbuf_vpack(hh_psbuf_t *buffer, va_list ivariables);
-HH_EXTERN void hh_psbuf_pack(hh_psbuf_t *buffer, ...);
+EM_EXTERN void em_psbuf_vpack(em_psbuf_t *buffer, va_list ivariables);
+EM_EXTERN void em_psbuf_pack(em_psbuf_t *buffer, ...);
 
-/* Extracts the contents of a psbuffer into a separately-allocated hh_buf_t.
+/* Extracts the contents of a psbuffer into a separately-allocated em_buf_t.
  * You will need to free the buffer and the psbuffer when you're done with them
  * still.
  */
-hh_status_t hh_psbuf_extract(hh_psbuf_t *target, hh_buf_t *final_buf);
+em_status_t em_psbuf_extract(em_psbuf_t *target, em_buf_t *final_buf);

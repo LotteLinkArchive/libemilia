@@ -8,7 +8,7 @@
  *  ---------------------------------------------------------------------------
  *   When downloading this, you should've been provided with a copy of the
  *   LICENSE document. If not, you can find it here:
- *   https://git.lotte.link/naphtha/hexhive/src/branch/master/LICENSE
+ *   https://git.lotte.link/naphtha/emilia/src/branch/master/LICENSE
  *  ---------------------------------------------------------------------------
  *   Copyright (c) Naphtha Nepanthez 2021 <naphtha@lotte.link>
  * \*-------------------------------------------------------------------------*/
@@ -23,37 +23,37 @@
 /* Allows for switching between linear and random probing.
  * TODO: Make random probing fully default to avoid clustering?
  */
-#ifndef HH_I_ASA_NO_RANDOMP
-#define HH_I_ASA_RANDOMP
+#ifndef EM_I_ASA_NO_RANDOMP
+#define EM_I_ASA_RANDOMP
 #endif
 
-#define HH_ASA_MIN_TIER 2
-#define HH_ASA_MAX_TIER 30
-#define HH_ASA_BLOOM_SZ 4096
+#define EM_ASA_MIN_TIER 2
+#define EM_ASA_MAX_TIER 30
+#define EM_ASA_BLOOM_SZ 4096
 
-#define I_PREPHDR struct hh_asa_hdr_s *header = *a;
+#define I_PREPHDR struct em_asa_hdr_s *header = *a;
 #define I_REINHDR header = *a;
-#define I_TELS_HS (header->element_size + HH_ASA_EH_SZ)
+#define I_TELS_HS (header->element_size + EM_ASA_EH_SZ)
 
 #define I_TIERCLM(x) (0xFFFFFFFF >> (31 - (x))) /* TM i31 UU */
 
-enum hh_asa_flags_e { FL_OCCUPY = 1, FL_DELETE = 2, FL_COLLIS = 4 };
+enum em_asa_flags_e { FL_OCCUPY = 1, FL_DELETE = 2, FL_COLLIS = 4 };
 
 /* Static Declarations & Constant Variables --------------------------------- */
 
-static const struct hh_asa_hdr_s hh_asa_defhr = { .tier = HH_ASA_MIN_TIER };
+static const struct em_asa_hdr_s em_asa_defhr = { .tier = EM_ASA_MIN_TIER };
 
-static unsigned long hh_i_asa_rup2f32(unsigned long v);
-static hh_status_t hh_i_asa_ensurei(void **a, unsigned long high_as);
-static bool hh_i_asa_eq_id(hh_asa_id_t ida, hh_asa_id_t idb);
-static hh_status_t hh_i_asa_grow(void **a);
-static unsigned long hh_i_asa_probe(void **a, unsigned long key,
+static unsigned long em_i_asa_rup2f32(unsigned long v);
+static em_status_t em_i_asa_ensurei(void **a, unsigned long high_as);
+static bool em_i_asa_eq_id(em_asa_id_t ida, em_asa_id_t idb);
+static em_status_t em_i_asa_grow(void **a);
+static unsigned long em_i_asa_probe(void **a, unsigned long key,
                                     unsigned char tier);
-static unsigned long hh_i_asa_freeslots(void **a);
+static unsigned long em_i_asa_freeslots(void **a);
 
 /* Public Functions --------------------------------------------------------- */
 
-hh_asa_id_t hh_i_asa_hrange(void **a, const void *key, size_t amt)
+em_asa_id_t em_i_asa_hrange(void **a, const void *key, size_t amt)
 {
    /* Hashes for the hash table are performed with 128-bit xxHash3.
     * A seed (randomized on hash table init) is used to ensure that each
@@ -67,15 +67,15 @@ hh_asa_id_t hh_i_asa_hrange(void **a, const void *key, size_t amt)
 
    XXH128_hash_t xhash =
       XXH3_128bits_withSeed(key, amt, (XXH64_hash_t)header->seed);
-   hh_asa_id_t fhash = { .h64s[0] = xhash.low64, .h64s[1] = xhash.high64 };
+   em_asa_id_t fhash = { .h64s[0] = xhash.low64, .h64s[1] = xhash.high64 };
 
    return fhash;
 }
 
-hh_status_t hh_i_asa_init(void **a, size_t el_size)
+em_status_t em_i_asa_init(void **a, size_t el_size)
 {
    /* Seed the global RNG if it hasn't been done already */
-   hh_mt_init_basic(&hh_mt19937_global, true);
+   em_mt_init_basic(&em_mt19937_global, true);
 
    /* Reallocate the input root PTR to the header size, copy defaults in and
     * configure new init values NOTE: If the RPTR is NULL, this will have
@@ -83,57 +83,57 @@ hh_status_t hh_i_asa_init(void **a, size_t el_size)
     * (Handy way to empty an assoca, although you may want to change the seed
     * back to normal again afterwards)
     */
-   *a = realloc(*a, HH_ASA_HR_SZ + el_size + HH_ASA_EH_SZ);
+   *a = realloc(*a, EM_ASA_HR_SZ + el_size + EM_ASA_EH_SZ);
    if (!*a)
-      return HH_OUT_OF_MEMORY;
-   memcpy(*a, &hh_asa_defhr, HH_ASA_HR_SZ);
-   memset((struct hh_asa_hdr_s *)*a + 1, 0, el_size + HH_ASA_EH_SZ);
+      return EM_OUT_OF_MEMORY;
+   memcpy(*a, &em_asa_defhr, EM_ASA_HR_SZ);
+   memset((struct em_asa_hdr_s *)*a + 1, 0, el_size + EM_ASA_EH_SZ);
 
    I_PREPHDR;
 
    header->element_size = el_size;
-   header->seed = hh_mt_genrand64_int64(&hh_mt19937_global);
+   header->seed = em_mt_genrand64_int64(&em_mt19937_global);
 
-   return hh_bloom_mk(&header->bloom, HH_ASA_BLOOM_SZ);
+   return em_bloom_mk(&header->bloom, EM_ASA_BLOOM_SZ);
 }
 
-void hh_i_asa_destroy(void **a)
+void em_i_asa_destroy(void **a)
 {
    if (!*a)
       return;
 
    I_PREPHDR;
 
-   hh_bloom_free(&header->bloom);
+   em_bloom_free(&header->bloom);
 
    free(*a);
 
    *a = NULL;
 }
 
-hh_status_t hh_i_asa_empty(void **a)
+em_status_t em_i_asa_empty(void **a)
 {
    I_PREPHDR;
 
-   hh_bloom_free(&header->bloom);
+   em_bloom_free(&header->bloom);
 
    /* Reinitialize the hash table while keeping the seed and element size */
    size_t tes = header->element_size;
    unsigned long long seed = header->seed;
 
    /* Depends on init usage of realloc instead of malloc */
-   hh_status_t s = hh_i_asa_init(a, tes);
-   if (s != HH_STATUS_OKAY)
+   em_status_t s = em_i_asa_init(a, tes);
+   if (s != EM_STATUS_OKAY)
       return s;
 
    /* Keep the seed the same, just in case/to prevent excess re-hashing */
    header = *a;
    header->seed = seed;
 
-   return HH_STATUS_OKAY;
+   return EM_STATUS_OKAY;
 }
 
-void *hh_i_asa_getip(void **a, unsigned long i)
+void *em_i_asa_getip(void **a, unsigned long i)
 {
    /* This function returns a pointer to the element header at the given index
     * and returns NULL if the given index exceeds the highest available index.
@@ -143,18 +143,18 @@ void *hh_i_asa_getip(void **a, unsigned long i)
 
    char *b = *a;
 
-   b = b + HH_ASA_HR_SZ + i * I_TELS_HS;
+   b = b + EM_ASA_HR_SZ + i * I_TELS_HS;
    return i > header->highest_index ? NULL : b;
 }
 
-long hh_i_asa_lookup(void **a, hh_asa_id_t id)
+long em_i_asa_lookup(void **a, em_asa_id_t id)
 {
    I_PREPHDR;
 
-   if (!hh_bloom_in(&header->bloom, &id, sizeof(id)))
+   if (!em_bloom_in(&header->bloom, &id, sizeof(id)))
       return -1;
 
-   for (signed char tier = header->tier; tier >= HH_ASA_MIN_TIER; tier--) {
+   for (signed char tier = header->tier; tier >= EM_ASA_MIN_TIER; tier--) {
       /* The initial probe is always just the full hash but masked with the
        * tier mask. Only the low 64 bits of the full hash are ever used. The
        * rest are used for the comparison process.
@@ -165,7 +165,7 @@ long hh_i_asa_lookup(void **a, hh_asa_id_t id)
       unsigned long searches = 0;
 
       for (;;) {
-         struct hh_asa_elhdr_s *cur_el_hdr = hh_i_asa_getip(a, probe);
+         struct em_asa_elhdr_s *cur_el_hdr = em_i_asa_getip(a, probe);
          if (!cur_el_hdr)
             break; /* Index too high - unoccupied, return -1 */
 
@@ -174,7 +174,7 @@ long hh_i_asa_lookup(void **a, hh_asa_id_t id)
             break;
 
          /* Compare the full hashes at every probe unless unoccupied */
-         bool comparison = hh_i_asa_eq_id(id, cur_el_hdr->id);
+         bool comparison = em_i_asa_eq_id(id, cur_el_hdr->id);
 
          /* & 0x2 -> Is it lazy deleted? */
          if (cur_el_hdr->flags & FL_DELETE) {
@@ -203,49 +203,49 @@ long hh_i_asa_lookup(void **a, hh_asa_id_t id)
 
          /* Next probes are all handled by a function which can do whatever
           * it wants to the previous probe. */
-         probe = hh_i_asa_probe(a, probe, tier);
+         probe = em_i_asa_probe(a, probe, tier);
       }
    }
 
    return -1;
 }
 
-hh_status_t hh_i_asa_set(void **a, hh_asa_id_t id, void *value)
+em_status_t em_i_asa_set(void **a, em_asa_id_t id, void *value)
 {
    I_PREPHDR;
 
    /* Execute the grow test to see if another tier is needed. */
-   hh_status_t gstat = hh_i_asa_grow(a);
-   if (gstat != HH_STATUS_OKAY)
+   em_status_t gstat = em_i_asa_grow(a);
+   if (gstat != EM_STATUS_OKAY)
       return gstat;
 
    /* If the element already exists, set the value (Python-style) */
-   long ilookup = hh_i_asa_lookup(a, id);
+   long ilookup = em_i_asa_lookup(a, id);
    if (ilookup >= 0) {
-      memcpy((struct hh_asa_elhdr_s *)hh_i_asa_getip(a, ilookup) + 1, value,
+      memcpy((struct em_asa_elhdr_s *)em_i_asa_getip(a, ilookup) + 1, value,
              header->element_size);
-      return HH_STATUS_OKAY;
+      return EM_STATUS_OKAY;
    }
 
-   hh_bloom_add(&header->bloom, &id, sizeof(id));
+   em_bloom_add(&header->bloom, &id, sizeof(id));
 
    unsigned long tiprobe,
       probe = tiprobe = id.h64s[0] & I_TIERCLM(header->tier);
-   struct hh_asa_elhdr_s *cur_el_hdr;
+   struct em_asa_elhdr_s *cur_el_hdr;
    unsigned char flagset = 0;
    unsigned long searches = 0;
 
    /* It miiight be possible for this to loop forever, maybe. No, actually, I
     * don't think it will. Maybe. */
    for (;;) {
-      gstat = hh_i_asa_ensurei(a, probe);
+      gstat = em_i_asa_ensurei(a, probe);
 
       I_REINHDR; /* Reset the header pointer just in case it changes. */
 
-      if (gstat != HH_STATUS_OKAY)
+      if (gstat != EM_STATUS_OKAY)
          return gstat;
 
-      cur_el_hdr = hh_i_asa_getip(a, probe);
+      cur_el_hdr = em_i_asa_getip(a, probe);
 
       if (cur_el_hdr->flags & FL_DELETE) {
          /* NOTE: Copies ALL other flags if LD! */
@@ -264,7 +264,7 @@ hh_status_t hh_i_asa_set(void **a, hh_asa_id_t id, void *value)
          cur_el_hdr->flags |= FL_COLLIS;
 
       searches++;
-      probe = hh_i_asa_probe(a, probe, header->tier);
+      probe = em_i_asa_probe(a, probe, header->tier);
       flagset = 0;
    }
 
@@ -277,10 +277,10 @@ hh_status_t hh_i_asa_set(void **a, hh_asa_id_t id, void *value)
    if (searches > header->ddepth)
       header->ddepth = searches;
 
-   return HH_STATUS_OKAY;
+   return EM_STATUS_OKAY;
 }
 
-hh_status_t hh_i_asa_reform(void **a, bool forced)
+em_status_t em_i_asa_reform(void **a, bool forced)
 {
    /* TODO: This is a comically slow function that is in dire need of
     * optimization, research and development. It's probably the only part of
@@ -289,24 +289,24 @@ hh_status_t hh_i_asa_reform(void **a, bool forced)
 
    I_PREPHDR;
 
-   struct hh_asa_elhdr_s *cur_el_hdr;
+   struct em_asa_elhdr_s *cur_el_hdr;
 
    if (header->elements < 1)
-      return hh_i_asa_empty(a);
-   if ((signed char)header->tier - 1 < HH_ASA_MIN_TIER)
-      return HH_STATUS_OKAY;
-   if (!forced && header->ld_elements * 2 < hh_i_asa_freeslots(a))
-      return HH_STATUS_OKAY; /* Table doesn't need downscaling */
+      return em_i_asa_empty(a);
+   if ((signed char)header->tier - 1 < EM_ASA_MIN_TIER)
+      return EM_STATUS_OKAY;
+   if (!forced && header->ld_elements * 2 < em_i_asa_freeslots(a))
+      return EM_STATUS_OKAY; /* Table doesn't need downscaling */
 
    char *telbuf = malloc(header->elements * I_TELS_HS);
    unsigned long bufels = 0;
    unsigned long cindex;
 
    if (!telbuf)
-      return HH_OUT_OF_MEMORY;
+      return EM_OUT_OF_MEMORY;
 
    for (cindex = 0; cindex <= header->highest_index; cindex++) {
-      cur_el_hdr = hh_i_asa_getip(a, cindex);
+      cur_el_hdr = em_i_asa_getip(a, cindex);
 
       if ((cur_el_hdr->flags & FL_OCCUPY) && !(cur_el_hdr->flags & FL_DELETE)) {
          memcpy(telbuf + I_TELS_HS * bufels, cur_el_hdr, I_TELS_HS);
@@ -314,8 +314,8 @@ hh_status_t hh_i_asa_reform(void **a, bool forced)
       }
    }
 
-   hh_status_t cstat = hh_i_asa_empty(a);
-   if (cstat != HH_STATUS_OKAY) {
+   em_status_t cstat = em_i_asa_empty(a);
+   if (cstat != EM_STATUS_OKAY) {
       free(telbuf);
       return cstat;
    }
@@ -323,9 +323,9 @@ hh_status_t hh_i_asa_reform(void **a, bool forced)
    I_REINHDR;
 
    /* This is just how we determine the new tier. It's a bit of a mess. */
-   unsigned long bufcp2 = hh_i_asa_rup2f32(bufels) - 1;
-   unsigned char match_tier = HH_ASA_MIN_TIER;
-   for (cindex = HH_ASA_MIN_TIER; cindex <= HH_ASA_MAX_TIER; cindex++) {
+   unsigned long bufcp2 = em_i_asa_rup2f32(bufels) - 1;
+   unsigned char match_tier = EM_ASA_MIN_TIER;
+   for (cindex = EM_ASA_MIN_TIER; cindex <= EM_ASA_MAX_TIER; cindex++) {
       if (I_TIERCLM(cindex) == bufcp2) {
          match_tier = cindex;
          break;
@@ -335,41 +335,41 @@ hh_status_t hh_i_asa_reform(void **a, bool forced)
    header->tier = match_tier;
 
    for (cindex = 0; cindex < bufels; cindex++) {
-      cur_el_hdr = (struct hh_asa_elhdr_s *)(telbuf + I_TELS_HS * cindex);
-      hh_i_asa_set(a, cur_el_hdr->id, cur_el_hdr + 1);
+      cur_el_hdr = (struct em_asa_elhdr_s *)(telbuf + I_TELS_HS * cindex);
+      em_i_asa_set(a, cur_el_hdr->id, cur_el_hdr + 1);
 
       I_REINHDR;
    }
 
    free(telbuf);
 
-   return HH_STATUS_OKAY;
+   return EM_STATUS_OKAY;
 }
 
-hh_status_t hh_i_asa_delete(void **a, hh_asa_id_t id)
+em_status_t em_i_asa_delete(void **a, em_asa_id_t id)
 {
    I_PREPHDR;
 
-   long ilookup = hh_i_asa_lookup(a, id);
+   long ilookup = em_i_asa_lookup(a, id);
    if (ilookup < 0)
-      return HH_EL_NOT_FOUND;
+      return EM_EL_NOT_FOUND;
 
-   struct hh_asa_elhdr_s *cur_el_hdr = hh_i_asa_getip(a, ilookup);
+   struct em_asa_elhdr_s *cur_el_hdr = em_i_asa_getip(a, ilookup);
 
    cur_el_hdr->flags |= FL_DELETE;
    header->elements--;
    header->ld_elements++;
 
-   hh_i_asa_reform(a, false);
+   em_i_asa_reform(a, false);
 
    I_REINHDR;
 
-   return HH_STATUS_OKAY;
+   return EM_STATUS_OKAY;
 }
 
 /* Static Definitions ------------------------------------------------------- */
 
-static unsigned long hh_i_asa_rup2f32(unsigned long v)
+static unsigned long em_i_asa_rup2f32(unsigned long v)
 {
    /* https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2 */
 
@@ -384,10 +384,10 @@ static unsigned long hh_i_asa_rup2f32(unsigned long v)
    return v;
 }
 
-static unsigned long hh_i_asa_probe(void **a, unsigned long key,
+static unsigned long em_i_asa_probe(void **a, unsigned long key,
                                     unsigned char tier)
 {
-#ifdef HH_I_ASA_RANDOMP
+#ifdef EM_I_ASA_RANDOMP
    I_PREPHDR;
 
    return (5 * key + (header->seed | 1)) & I_TIERCLM(tier);
@@ -396,7 +396,7 @@ static unsigned long hh_i_asa_probe(void **a, unsigned long key,
 #endif
 }
 
-static hh_status_t hh_i_asa_ensurei(void **a, unsigned long high_as)
+static em_status_t em_i_asa_ensurei(void **a, unsigned long high_as)
 {
    /* Very lackluster memory saving technique - only allocate up to the highest
     * occupied index in the table's main array.
@@ -405,26 +405,26 @@ static hh_status_t hh_i_asa_ensurei(void **a, unsigned long high_as)
    I_PREPHDR;
 
    unsigned long ohil = header->highest_index + 1;
-   size_t olsize = HH_ASA_HR_SZ + (size_t)ohil * I_TELS_HS;
-   size_t nwsize = HH_ASA_HR_SZ + ((size_t)high_as + 1) * I_TELS_HS;
+   size_t olsize = EM_ASA_HR_SZ + (size_t)ohil * I_TELS_HS;
+   size_t nwsize = EM_ASA_HR_SZ + ((size_t)high_as + 1) * I_TELS_HS;
 
    if (nwsize <= olsize)
-      return HH_STATUS_OKAY;
+      return EM_STATUS_OKAY;
 
    *a = realloc(*a, nwsize);
    if (!*a)
-      return HH_OUT_OF_MEMORY;
+      return EM_OUT_OF_MEMORY;
 
    /* We've changed the pointer, so reinitialize the header one. */
    I_REINHDR;
 
    header->highest_index = high_as;
-   memset(hh_i_asa_getip(a, ohil), 0, nwsize - olsize);
+   memset(em_i_asa_getip(a, ohil), 0, nwsize - olsize);
 
-   return HH_STATUS_OKAY;
+   return EM_STATUS_OKAY;
 }
 
-static bool hh_i_asa_eq_id(hh_asa_id_t ida, hh_asa_id_t idb)
+static bool em_i_asa_eq_id(em_asa_id_t ida, em_asa_id_t idb)
 {
    /* Because memcmp just wasn't good enough for ya. */
    if (ida.h64s[0] != idb.h64s[0] || ida.h64s[1] != idb.h64s[1])
@@ -433,22 +433,22 @@ static bool hh_i_asa_eq_id(hh_asa_id_t ida, hh_asa_id_t idb)
    return true;
 }
 
-static hh_status_t hh_i_asa_grow(void **a)
+static em_status_t em_i_asa_grow(void **a)
 {
    I_PREPHDR;
 
    if ((double)header->elements <=
        2.0L / 3.0L * (double)(I_TIERCLM(header->tier) + 1))
-      return HH_STATUS_OKAY;
-   if (header->tier >= HH_ASA_MAX_TIER)
-      return HH_INT_OVERFLOW;
+      return EM_STATUS_OKAY;
+   if (header->tier >= EM_ASA_MAX_TIER)
+      return EM_INT_OVERFLOW;
 
    header->tier++;
 
-   return HH_STATUS_OKAY;
+   return EM_STATUS_OKAY;
 }
 
-static unsigned long hh_i_asa_freeslots(void **a)
+static unsigned long em_i_asa_freeslots(void **a)
 {
    I_PREPHDR;
 

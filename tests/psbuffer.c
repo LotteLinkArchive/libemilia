@@ -2,9 +2,9 @@
 
 int main(void)
 {
-   struct hh_psformat_s tformat = hh_make_psformat("xBb?HhIiQqfd");
-   struct hh_psbuf_s    tbuffer = hh_psmkbuf(&tformat, NULL);
+   struct em_psformat_s tformat = em_make_psformat("xBb?HhIiQqfd");
+   struct em_psbuf_s    tbuffer = em_psmkbuf(&tformat, NULL);
    if (tbuffer.status) return tbuffer.status;
-   hh_status_t freestat = hh_psfreebuf(&tbuffer);
+   em_status_t freestat = em_psfreebuf(&tbuffer);
    if (freestat) return freestat;
 }
