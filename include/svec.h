@@ -48,7 +48,7 @@
 #define __em_dyn_init(a) (__em_dyn_add((a), 0)) /* Must be type-aware */
 #define __em_dyn_count(a) (__em_i_dyn_c(__em_i_dyn_rw((a))))
 #define __em_dyn_last_idx(a)                                                   \
-   (__em_dyn_count((a)) > 0 ? (__em_dyn_count((a)) - 1) : -1)
+   (__em_dyn_count((a)) > 0 ? (long long)(__em_dyn_count((a)) - 1) : -1)
 #define __em_dyn_free(a)                                                       \
    ((a) ? (({                                                                  \
               free(__em_i_dyn_rw((a)));                                        \

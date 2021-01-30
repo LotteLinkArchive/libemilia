@@ -18,7 +18,7 @@ em_status_t em_i_dyn_ins(void **a, size_t i, void *e)
    if (i > __em_dyn_count(*a))
       return EM_OUT_OF_BOUNDS;
 
-   em_status_t stat = __em_dyn_add(*a, 1);
+   em_status_t stat = __em_dyn_add(*(char **)a, 1);
    if (stat != EM_STATUS_OKAY)
       return stat;
 
@@ -44,5 +44,5 @@ em_status_t em_i_dyn_del(void **a, size_t i)
    size_t rms = (__em_dyn_count(*a) - (i + 1)) * els;
    memmove(dxsrc, dxsrc + els, rms);
 
-   return __em_dyn_shrkby(*a, 1);
+   return __em_dyn_shrkby(*(char **)a, 1);
 }

@@ -45,7 +45,7 @@ static const struct em_asa_hdr_s em_asa_defhr = { .tier = EM_ASA_MIN_TIER };
 
 static unsigned long em_i_asa_rup2f32(unsigned long v);
 static em_status_t em_i_asa_ensurei(void **a, unsigned long high_as);
-static bool em_i_asa_eq_id(em_asa_id_t ida, em_asa_id_t idb);
+static bool em_i_asa_eq_id(em_asa_id_t *ida, em_asa_id_t *idb);
 static em_status_t em_i_asa_grow(void **a);
 static unsigned long em_i_asa_probe(void **a, unsigned long key,
                                     unsigned char tier);
@@ -65,9 +65,18 @@ em_asa_id_t em_i_asa_hrange(void **a, const void *key, size_t amt)
 
    I_PREPHDR; /* Header preparation - Allow direct access to the table hdr. */
 
+   em_asa_id_t fhash = { .llen = amt };
+
    XXH128_hash_t xhash =
       XXH3_128bits_withSeed(key, amt, (XXH64_hash_t)header->seed);
-   em_asa_id_t fhash = { .h64s[0] = xhash.low64, .h64s[1] = xhash.high64 };
+   fhash.probe = xhash.low64 & 0xFFFFFFFF;
+
+   memcpy(fhash.usect.colres, key, __em_min(EM_ASA_KEY_COLRES, amt));
+
+   if (amt > EM_ASA_KEY_COLRES) {
+      fhash.usect.low32 ^= xhash.low64 >> 32;
+      fhash.usect.high64 ^= xhash.high64;
+   }
 
    return fhash;
 }
@@ -161,7 +170,7 @@ long em_i_asa_lookup(void **a, em_asa_id_t id)
        */
 
       unsigned long tiprob,
-         probe = tiprob = id.h64s[0] & I_TIERCLM((unsigned char)tier);
+         probe = tiprob = id.probe & I_TIERCLM((unsigned char)tier);
       unsigned long searches = 0;
 
       for (;;) {
@@ -174,7 +183,7 @@ long em_i_asa_lookup(void **a, em_asa_id_t id)
             break;
 
          /* Compare the full hashes at every probe unless unoccupied */
-         bool comparison = em_i_asa_eq_id(id, cur_el_hdr->id);
+         bool comparison = em_i_asa_eq_id(&id, &cur_el_hdr->id);
 
          /* & 0x2 -> Is it lazy deleted? */
          if (cur_el_hdr->flags & FL_DELETE) {
@@ -229,8 +238,7 @@ em_status_t em_i_asa_set(void **a, em_asa_id_t id, void *value)
 
    em_bloom_add(&header->bloom, &id, sizeof(id));
 
-   unsigned long tiprobe,
-      probe = tiprobe = id.h64s[0] & I_TIERCLM(header->tier);
+   unsigned long tiprobe, probe = tiprobe = id.probe & I_TIERCLM(header->tier);
    struct em_asa_elhdr_s *cur_el_hdr;
    unsigned char flagset = 0;
    unsigned long searches = 0;
@@ -424,13 +432,10 @@ static em_status_t em_i_asa_ensurei(void **a, unsigned long high_as)
    return EM_STATUS_OKAY;
 }
 
-static bool em_i_asa_eq_id(em_asa_id_t ida, em_asa_id_t idb)
+static bool em_i_asa_eq_id(em_asa_id_t *ida, em_asa_id_t *idb)
 {
-   /* Because memcmp just wasn't good enough for ya. */
-   if (ida.h64s[0] != idb.h64s[0] || ida.h64s[1] != idb.h64s[1])
-      return false;
-
-   return true;
+   /* TODO: Consider the dangers of memcmp on a struct for other platforms */
+   return (memcmp(ida, idb, sizeof(em_asa_id_t)) == 0);
 }
 
 static em_status_t em_i_asa_grow(void **a)

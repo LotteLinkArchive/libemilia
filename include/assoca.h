@@ -67,8 +67,16 @@
 #define __em_i_asa_hcast(m) ((struct em_asa_hdr_s *)(m))
 #define __em_i_asa_vcast(m) ((void **)&(m))
 
+#define EM_ASA_KEY_COLRES (size_t)26
+
 struct em_asa_id_s {
-   unsigned long long h64s[2];
+   unsigned long probe;
+   union {
+      unsigned long low32;
+      unsigned long long high64;
+      char colres[EM_ASA_KEY_COLRES];
+   } usect;
+   unsigned char llen;
 } __attribute__((packed));
 
 typedef struct em_asa_id_s em_asa_id_t;
@@ -87,16 +95,14 @@ struct em_asa_hdr_s {
 };
 
 struct em_asa_elhdr_s {
-   /* ASSOCA ELEMENT HEADER LAYOUT:
-    * #%%%%%%%%%%%%%%%% (# = Flags | % = Hash)
-    * FLAG LAYOUT:
+   /* FLAG LAYOUT:
     * 0 0 0 0 0 0 0 0
     *           | | \- Occupied
     *           | \--- Lazy-delete
     *           \----- Collided
     */
-   unsigned char flags;
    em_asa_id_t id;
+   unsigned char flags;
 } __attribute__((packed));
 
 #define EM_ASA_ID_SZ sizeof(struct em_asa_id_s)

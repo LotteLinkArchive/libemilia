@@ -50,7 +50,7 @@ int main(void)
          return EXIT_FAILURE;
       }
 
-      if (aa_get(stuff, aa_vh(stuff, x)) != x + 1) {
+      if (aa_get(stuff, aa_vh(stuff, x)) != (signed int)(x + 1)) {
          printf("Spam elements were not valid!\n");
          return EXIT_FAILURE;
       }
