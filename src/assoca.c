@@ -179,39 +179,31 @@ long em_i_asa_lookup(void **a, em_asa_id_t id)
 
       for (;;) {
          struct em_asa_elhdr_s *cur_el_hdr = em_i_asa_getip(a, probe);
-         if (!cur_el_hdr)
-            break; /* Index too high - unoccupied, return -1 */
 
          /* If not occupied, return -1 */
-         if (!(cur_el_hdr->flags & FL_OCCUPY))
+         if (!cur_el_hdr || !(cur_el_hdr->flags & FL_OCCUPY))
             break;
 
          /* Compare the full hashes at every probe unless unoccupied */
          bool comparison = em_i_asa_eq_id(&id, &cur_el_hdr->id);
 
-         /* & 0x2 -> Is it lazy deleted? */
-         if (cur_el_hdr->flags & FL_DELETE) {
-            /* If comparison matches, the element we're looking for has been
-             * deleted, so ignore it and return -1. */
-            if (comparison)
-               break;
-         }
+         /* If comparison matches (and LD), the element we're looking for has
+          * been deleted, so ignore it and return -1. */
+         if (cur_el_hdr->flags & FL_DELETE && comparison)
+            break;
 
          /* If occupied, not deleted and comparison matches, we found the
           * element we're looking for! */
          if (comparison)
             return probe;
 
-         /* Check if the first element has no collisions, if not, return -1 */
-         if (!(cur_el_hdr->flags & FL_COLLIS) && probe == tiprob)
-            break;
-
          searches++;
 
-         /* https://www.youtube.com/watch?v=Tk5cDyvhJEE
-          * Prevents infinite searching on a fully loaded table.
+         /* Check if the first element has no collisions, if not, return -1
+          * Note: Also prevents infinite searching on a fully loaded table.
           */
-         if (searches > header->ddepth)
+         if ((!(cur_el_hdr->flags & FL_COLLIS) && probe == tiprob) ||
+             searches > header->ddepth)
             break;
 
          /* Next probes are all handled by a function which can do whatever
