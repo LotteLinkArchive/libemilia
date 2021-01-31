@@ -67,6 +67,7 @@
 #define __em_i_asa_hcast(m) ((struct em_asa_hdr_s *)(m))
 #define __em_i_asa_vcast(m) ((void **)&(m))
 
+/* Sensible values are 26, 42 and 58. */
 #define EM_ASA_KEY_COLRES (size_t)26
 
 struct em_asa_id_s {
