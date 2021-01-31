@@ -367,9 +367,7 @@ static unsigned long em_i_asa_rup2f32(unsigned long v)
 
 static int em_i_asa_log2(int num)
 {
-   if (num == 1)
-      return 0;
-   return 1 + em_i_asa_log2(num / 2);
+   return num == 1 ? 0 : 1 + em_i_asa_log2(num / 2);
 }
 
 static unsigned long em_i_asa_probe(void **a, unsigned long key,
