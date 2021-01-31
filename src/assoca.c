@@ -36,6 +36,7 @@
 #define I_TELS_HS (header->element_size + EM_ASA_EH_SZ)
 
 #define I_TIERCLM(x) (0xFFFFFFFF >> (31 - (x))) /* TM i31 UU */
+#define I_LOG2LNG(n) (31 - __builtin_clz(n))
 
 enum em_asa_flags_e { FL_OCCUPY = 1, FL_DELETE = 2, FL_COLLIS = 4 };
 
@@ -44,7 +45,6 @@ enum em_asa_flags_e { FL_OCCUPY = 1, FL_DELETE = 2, FL_COLLIS = 4 };
 static const struct em_asa_hdr_s em_asa_defhr = { .tier = EM_ASA_MIN_TIER };
 
 static unsigned long em_i_asa_rup2f32(unsigned long v);
-static int em_i_asa_log2(int num);
 static em_status_t em_i_asa_ensurei(void **a, unsigned long high_as);
 static bool em_i_asa_eq_id(em_asa_id_t *ida, em_asa_id_t *idb);
 static em_status_t em_i_asa_grow(void **a);
@@ -307,7 +307,7 @@ em_status_t em_i_asa_reform(void **a, bool forced)
    new_table->seed = header->seed;
    new_table->tier =
       __em_clamp(EM_ASA_MIN_TIER,
-                 em_i_asa_log2(em_i_asa_rup2f32(header->elements)) - 1,
+                 I_LOG2LNG(em_i_asa_rup2f32(header->elements)) - 1,
                  EM_ASA_MAX_TIER);
 
    for (unsigned long x = 0; x <= header->highest_index; x++) {
@@ -363,11 +363,6 @@ static unsigned long em_i_asa_rup2f32(unsigned long v)
    v++;
 
    return v;
-}
-
-static int em_i_asa_log2(int num)
-{
-   return num == 1 ? 0 : 1 + em_i_asa_log2(num / 2);
 }
 
 static unsigned long em_i_asa_probe(void **a, unsigned long key,
