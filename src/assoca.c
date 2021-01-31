@@ -304,9 +304,8 @@ em_status_t em_i_asa_reform(void **a, bool forced)
 
    if (header->elements < 1)
       return em_i_asa_empty(a);
-   if ((signed char)header->tier - 1 < EM_ASA_MIN_TIER)
-      return EM_STATUS_OKAY;
-   if (!forced && header->ld_elements << 1 < em_i_asa_freeslots(a))
+   if ((signed char)header->tier - 1 < EM_ASA_MIN_TIER ||
+       (!forced && header->ld_elements << 1 < em_i_asa_freeslots(a)))
       return EM_STATUS_OKAY; /* Table doesn't need downscaling, exit safely */
 
    struct em_asa_hdr_s *new_table = NULL;
