@@ -318,7 +318,7 @@ em_status_t em_i_asa_reform(void **a, bool forced)
                         EM_ASA_MIN_TIER),
                EM_ASA_MAX_TIER);
 
-   for (unsigned int x = 0; x <= header->highest_index; x++) {
+   for (unsigned long x = 0; x <= header->highest_index; x++) {
       struct em_asa_elhdr_s *cur_el_hdr = em_i_asa_getip(a, x);
 
       if ((cur_el_hdr->flags & FL_OCCUPY) && !(cur_el_hdr->flags & FL_DELETE))
