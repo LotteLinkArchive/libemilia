@@ -21,4 +21,5 @@
       __typeof__(b) _b = (b);                                                  \
       _a > _b ? _a : _b;                                                       \
    })
+#define __em_clamp(minv, x, maxv) (__em_min(__em_max((x), (minv)), (maxv)))
 #define __em_unused(x) (void)(x)

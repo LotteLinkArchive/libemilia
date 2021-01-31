@@ -314,9 +314,9 @@ em_status_t em_i_asa_reform(void **a, bool forced)
       return stat;
    new_table->seed = header->seed;
    new_table->tier =
-      __em_min(__em_max(em_i_asa_log2(em_i_asa_rup2f32(header->elements)) - 1,
-                        EM_ASA_MIN_TIER),
-               EM_ASA_MAX_TIER);
+      __em_clamp(EM_ASA_MIN_TIER,
+                 em_i_asa_log2(em_i_asa_rup2f32(header->elements)) - 1,
+                 EM_ASA_MAX_TIER);
 
    for (unsigned long x = 0; x <= header->highest_index; x++) {
       struct em_asa_elhdr_s *cur_el_hdr = em_i_asa_getip(a, x);
