@@ -44,6 +44,7 @@ enum em_asa_flags_e { FL_OCCUPY = 1, FL_DELETE = 2, FL_COLLIS = 4 };
 static const struct em_asa_hdr_s em_asa_defhr = { .tier = EM_ASA_MIN_TIER };
 
 static unsigned long em_i_asa_rup2f32(unsigned long v);
+static int em_i_asa_log2(int num);
 static em_status_t em_i_asa_ensurei(void **a, unsigned long high_as);
 static bool em_i_asa_eq_id(em_asa_id_t *ida, em_asa_id_t *idb);
 static em_status_t em_i_asa_grow(void **a);
@@ -293,66 +294,44 @@ em_status_t em_i_asa_set(void **a, em_asa_id_t id, void *value)
 
 em_status_t em_i_asa_reform(void **a, bool forced)
 {
-   /* TODO: This is a comically slow function that is in dire need of
-    * optimization, research and development. It's probably the only part of
-    * this implementation that kind of sucks.
+   /* This function rebuilds the entire associative array, and has a similar
+    * effect on performance to Windows' defrag tool. The goal of this function
+    * is to attempt to rid the table of lazy-deleted cells and to downscale the
+    * table when many cells are marked as deleted, saving memory.
     */
 
    I_PREPHDR;
-
-   struct em_asa_elhdr_s *cur_el_hdr;
 
    if (header->elements < 1)
       return em_i_asa_empty(a);
    if ((signed char)header->tier - 1 < EM_ASA_MIN_TIER)
       return EM_STATUS_OKAY;
-   if (!forced && header->ld_elements * 2 < em_i_asa_freeslots(a))
-      return EM_STATUS_OKAY; /* Table doesn't need downscaling */
+   if (!forced && header->ld_elements << 1 < em_i_asa_freeslots(a))
+      return EM_STATUS_OKAY; /* Table doesn't need downscaling, exit safely */
 
-   char *telbuf = malloc(header->elements * I_TELS_HS);
-   unsigned long bufels = 0;
-   unsigned long cindex;
+   struct em_asa_hdr_s *new_table = NULL;
+   em_status_t stat = em_i_asa_init((void **)&new_table, header->element_size);
+   if (stat != EM_STATUS_OKAY)
+      return stat;
+   new_table->seed = header->seed;
+   new_table->tier =
+      __em_min(__em_max(em_i_asa_log2(em_i_asa_rup2f32(header->elements)) - 1,
+                        EM_ASA_MIN_TIER),
+               EM_ASA_MAX_TIER);
 
-   if (!telbuf)
-      return EM_OUT_OF_MEMORY;
+   for (unsigned int x = 0; x <= header->highest_index; x++) {
+      struct em_asa_elhdr_s *cur_el_hdr = em_i_asa_getip(a, x);
 
-   for (cindex = 0; cindex <= header->highest_index; cindex++) {
-      cur_el_hdr = em_i_asa_getip(a, cindex);
-
-      if ((cur_el_hdr->flags & FL_OCCUPY) && !(cur_el_hdr->flags & FL_DELETE)) {
-         memcpy(telbuf + I_TELS_HS * bufels, cur_el_hdr, I_TELS_HS);
-         bufels++;
-      }
+      if ((cur_el_hdr->flags & FL_OCCUPY) && !(cur_el_hdr->flags & FL_DELETE))
+         if ((stat = em_i_asa_set((void **)&new_table, cur_el_hdr->id,
+                                  cur_el_hdr + 1)) != EM_STATUS_OKAY)
+            return stat;
    }
 
-   em_status_t cstat = em_i_asa_empty(a);
-   if (cstat != EM_STATUS_OKAY) {
-      free(telbuf);
-      return cstat;
-   }
+   em_i_asa_destroy(a);
+   *a = new_table;
 
    I_REINHDR;
-
-   /* This is just how we determine the new tier. It's a bit of a mess. */
-   unsigned long bufcp2 = em_i_asa_rup2f32(bufels) - 1;
-   unsigned char match_tier = EM_ASA_MIN_TIER;
-   for (cindex = EM_ASA_MIN_TIER; cindex <= EM_ASA_MAX_TIER; cindex++) {
-      if (I_TIERCLM(cindex) == bufcp2) {
-         match_tier = cindex;
-         break;
-      }
-   }
-
-   header->tier = match_tier;
-
-   for (cindex = 0; cindex < bufels; cindex++) {
-      cur_el_hdr = (struct em_asa_elhdr_s *)(telbuf + I_TELS_HS * cindex);
-      em_i_asa_set(a, cur_el_hdr->id, cur_el_hdr + 1);
-
-      I_REINHDR;
-   }
-
-   free(telbuf);
 
    return EM_STATUS_OKAY;
 }
@@ -393,6 +372,13 @@ static unsigned long em_i_asa_rup2f32(unsigned long v)
    v++;
 
    return v;
+}
+
+static int em_i_asa_log2(int num)
+{
+   if (num == 1)
+      return 0;
+   return 1 + em_i_asa_log2(num / 2);
 }
 
 static unsigned long em_i_asa_probe(void **a, unsigned long key,
