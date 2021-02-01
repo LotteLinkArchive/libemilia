@@ -380,7 +380,8 @@ static em_status_t em_i_asa_ensurei(void **a, unsigned long high_as)
 
    header->highest_index = high_as;
    void *axd = em_i_asa_getip(a, ohil);
-   if (!axd) return EM_OUT_OF_MEMORY;
+   if (!axd)
+      return EM_OUT_OF_MEMORY;
 
    memset(axd, 0, nwsize - olsize);
 
