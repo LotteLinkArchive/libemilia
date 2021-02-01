@@ -67,6 +67,15 @@
 #define __em_i_asa_hcast(m) ((struct em_asa_hdr_s *)(m))
 #define __em_i_asa_vcast(m) ((void **)&(m))
 
+/* Internal replacement macros */
+#define em_i_asa_getip(a, i)                                                   \
+   ((void *)((unsigned long)(i) > __em_i_asa_hcast(*(a))->highest_index ?      \
+                NULL :                                                         \
+                (char *)(*(a)) +                                               \
+                   (EM_ASA_HR_SZ +                                             \
+                    (i) * (__em_i_asa_hcast(*(a))->element_size +              \
+                           EM_ASA_EH_SZ))))
+
 /* Sensible values are 26, 42 and 58. */
 #define EM_ASA_KEY_COLRES (size_t)26
 
@@ -114,7 +123,6 @@ EM_EXTERN em_asa_id_t em_i_asa_hrange(void **a, const void *key, size_t amt);
 EM_EXTERN em_status_t em_i_asa_init(void **a, size_t el_size);
 EM_EXTERN void em_i_asa_destroy(void **a);
 EM_EXTERN em_status_t em_i_asa_empty(void **a);
-EM_EXTERN void *em_i_asa_getip(void **a, unsigned long i);
 EM_EXTERN long em_i_asa_lookup(void **a, em_asa_id_t id);
 EM_EXTERN em_status_t em_i_asa_set(void **a, em_asa_id_t id, void *value);
 EM_EXTERN em_status_t em_i_asa_reform(void **a, bool forced);

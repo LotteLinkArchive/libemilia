@@ -37,6 +37,13 @@
 
 #define I_TIERCLM(x) (0xFFFFFFFF >> (31 - (x))) /* TM i31 UU */
 #define I_LOG2LNG(n) (31 - __builtin_clz(n))
+#define I_KEYICMP(a, b) (memcmp((a), (b), sizeof(em_asa_id_t)) == 0)
+
+#ifdef EM_I_ASA_RANDOMP
+#define I_PROBEMC(k, t) ((5 * k + (header->seed | 1)) & I_TIERCLM(t))
+#else
+#define I_PROBEMC(k, t) ((k + 1) & I_TIERCLM(t))
+#endif
 
 enum em_asa_flags_e { FL_OCCUPY = 1, FL_DELETE = 2, FL_COLLIS = 4 };
 
@@ -46,10 +53,7 @@ static const struct em_asa_hdr_s em_asa_defhr = { .tier = EM_ASA_MIN_TIER };
 
 static unsigned long em_i_asa_rup2f32(unsigned long v);
 static em_status_t em_i_asa_ensurei(void **a, unsigned long high_as);
-static bool em_i_asa_eq_id(em_asa_id_t *ida, em_asa_id_t *idb);
 static em_status_t em_i_asa_grow(void **a);
-static unsigned long em_i_asa_probe(void **a, unsigned long key,
-                                    unsigned char tier);
 static unsigned long em_i_asa_freeslots(void **a);
 
 /* Public Functions --------------------------------------------------------- */
@@ -70,6 +74,7 @@ em_asa_id_t em_i_asa_hrange(void **a, const void *key, size_t amt)
 
    XXH128_hash_t xhash =
       XXH3_128bits_withSeed(key, amt, (XXH64_hash_t)header->seed);
+
    fhash.probe = xhash.low64 & 0xFFFFFFFF;
 
    memcpy(fhash.usect.colres, key, __em_min(EM_ASA_KEY_COLRES, amt));
@@ -146,20 +151,6 @@ em_status_t em_i_asa_empty(void **a)
    return EM_STATUS_OKAY;
 }
 
-void *em_i_asa_getip(void **a, unsigned long i)
-{
-   /* This function returns a pointer to the element header at the given index
-    * and returns NULL if the given index exceeds the highest available index.
-    */
-
-   I_PREPHDR;
-
-   char *b = *a;
-
-   b = b + EM_ASA_HR_SZ + i * I_TELS_HS;
-   return i > header->highest_index ? NULL : b;
-}
-
 long em_i_asa_lookup(void **a, em_asa_id_t id)
 {
    I_PREPHDR;
@@ -185,7 +176,7 @@ long em_i_asa_lookup(void **a, em_asa_id_t id)
             break;
 
          /* Compare the full hashes at every probe unless unoccupied */
-         bool comparison = em_i_asa_eq_id(&id, &cur_el_hdr->id);
+         bool comparison = I_KEYICMP(&id, &cur_el_hdr->id);
 
          /* If comparison matches (and LD), the element we're looking for has
           * been deleted, so ignore it and return -1. */
@@ -208,7 +199,7 @@ long em_i_asa_lookup(void **a, em_asa_id_t id)
 
          /* Next probes are all handled by a function which can do whatever
           * it wants to the previous probe. */
-         probe = em_i_asa_probe(a, probe, tier);
+         probe = I_PROBEMC(probe, tier);
       }
    }
 
@@ -268,7 +259,7 @@ em_status_t em_i_asa_set(void **a, em_asa_id_t id, void *value)
          cur_el_hdr->flags |= FL_COLLIS;
 
       searches++;
-      probe = em_i_asa_probe(a, probe, header->tier);
+      probe = I_PROBEMC(probe, header->tier);
       flagset = 0;
    }
 
@@ -365,18 +356,6 @@ static unsigned long em_i_asa_rup2f32(unsigned long v)
    return v;
 }
 
-static unsigned long em_i_asa_probe(void **a, unsigned long key,
-                                    unsigned char tier)
-{
-#ifdef EM_I_ASA_RANDOMP
-   I_PREPHDR;
-
-   return (5 * key + (header->seed | 1)) & I_TIERCLM(tier);
-#else
-   return (key + 1) & I_TIERCLM(tier);
-#endif
-}
-
 static em_status_t em_i_asa_ensurei(void **a, unsigned long high_as)
 {
    /* Very lackluster memory saving technique - only allocate up to the highest
@@ -400,15 +379,12 @@ static em_status_t em_i_asa_ensurei(void **a, unsigned long high_as)
    I_REINHDR;
 
    header->highest_index = high_as;
-   memset(em_i_asa_getip(a, ohil), 0, nwsize - olsize);
+   void *axd = em_i_asa_getip(a, ohil);
+   if (!axd) return EM_OUT_OF_MEMORY;
+
+   memset(axd, 0, nwsize - olsize);
 
    return EM_STATUS_OKAY;
-}
-
-static bool em_i_asa_eq_id(em_asa_id_t *ida, em_asa_id_t *idb)
-{
-   /* TODO: Consider the dangers of memcmp on a struct for other platforms */
-   return (memcmp(ida, idb, sizeof(em_asa_id_t)) == 0);
 }
 
 static em_status_t em_i_asa_grow(void **a)
