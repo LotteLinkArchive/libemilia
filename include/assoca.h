@@ -76,7 +76,14 @@
                     (i) * (__em_i_asa_hcast(*(a))->element_size +              \
                            EM_ASA_EH_SZ))))
 
-/* Sensible values are 26, 42 and 58. */
+/* This value represents the amount of key bytes that are guaranteed to have
+ * absolutely no collisions. By default it's 26, which means any bytes below or
+ * equal to 26 bytes in size will be free of any pre-hash collisions. Above
+ * that, the likelihood of a collision increases, but is still less likely than
+ * winning the national lottery twice, so you'll be fine. Probably.
+ *
+ * Sensible values are 26, 42 and 58.
+ */
 #define EM_ASA_KEY_COLRES (size_t)26
 
 struct em_asa_id_s {

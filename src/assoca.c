@@ -126,6 +126,9 @@ void em_i_asa_destroy(void **a)
 
    free(*a);
 
+   /* Is this neccessary? Can the user be trusted to do this themsevles?
+    * THey probably can't...
+    */
    *a = NULL;
 }
 
