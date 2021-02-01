@@ -80,8 +80,8 @@ em_asa_id_t em_i_asa_hrange(void **a, const void *key, size_t amt)
    memcpy(fhash.usect.colres, key, __em_min(EM_ASA_KEY_COLRES, amt));
 
    if (amt > EM_ASA_KEY_COLRES) {
-      fhash.usect.low32 ^= xhash.low64 >> 32;
-      fhash.usect.high64 ^= xhash.high64;
+      fhash.usect.isect.low32 ^= xhash.low64 >> 32;
+      fhash.usect.isect.high64 ^= xhash.high64;
    } else {
       fhash.probe ^=
          xhash.low64 >> 32 ^ (xhash.high64 & 0xFFFFFFFF) ^ xhash.high64 >> 32;

@@ -82,8 +82,10 @@
 struct em_asa_id_s {
    unsigned long probe;
    union {
-      unsigned long low32;
-      unsigned long long high64;
+      struct {
+         unsigned long low32;
+         unsigned long long high64;
+      } isect;
       char colres[EM_ASA_KEY_COLRES];
    } usect;
    unsigned char llen;
