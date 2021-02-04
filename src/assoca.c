@@ -20,13 +20,6 @@
 #include "../include/mt19937-64.h"
 #include "../include/util.h"
 
-/* Allows for switching between linear and random probing.
- * TODO: Make random probing fully default to avoid clustering?
- */
-#ifndef EM_I_ASA_NO_RANDOMP
-#define EM_I_ASA_RANDOMP
-#endif
-
 #define EM_ASA_MIN_TIER 2
 #define EM_ASA_MAX_TIER 30
 #define EM_ASA_BLOOM_SZ 4096
@@ -38,12 +31,7 @@
 #define I_TIERCLM(x) (0xFFFFFFFF >> (31 - (x))) /* TM i31 UU */
 #define I_LOG2LNG(n) (31 - __builtin_clz(n))
 #define I_KEYICMP(a, b) (memcmp((a), (b), sizeof(em_asa_id_t)) == 0)
-
-#ifdef EM_I_ASA_RANDOMP
 #define I_PROBEMC(k, t) ((5 * k + (header->seed | 1)) & I_TIERCLM(t))
-#else
-#define I_PROBEMC(k, t) ((k + 1) & I_TIERCLM(t))
-#endif
 
 enum em_asa_flags_e { FL_OCCUPY = 1, FL_DELETE = 2, FL_COLLIS = 4 };
 

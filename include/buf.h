@@ -7,10 +7,10 @@
 #include "status.h"
 
 struct em_alloc_s {
-   unsigned long long id;
+   void *udata;
 
-   void *(*realloc)(unsigned long long, void *, size_t);
-   void (*free)(unsigned long long, void *);
+   void *(*realloc)(void *, void *, size_t);
+   void (*free)(void *, void *);
 };
 
 typedef struct em_alloc_s em_alloc_t;

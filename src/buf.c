@@ -6,23 +6,23 @@
 
 #include "../include/util.h"
 
-void *em_brealloc(unsigned long long id, void *target, size_t newsize)
+void *em_brealloc(void *udata, void *target, size_t newsize)
 {
-   __em_unused(id);
+   __em_unused(udata);
 
    return realloc(target, newsize);
 }
 
-void em_bfree(unsigned long long id, void *target)
+void em_bfree(void *udata, void *target)
 {
-   __em_unused(id);
+   __em_unused(udata);
 
    free(target);
 }
 
 const em_alloc_t em_g_alloc = { .realloc = em_brealloc,
                                 .free = em_bfree,
-                                .id = 0 };
+                                .udata = NULL };
 
 const em_buf_t em_def_buf = { .bytes = 0, .data = NULL, .mi = &em_g_alloc };
 
@@ -40,7 +40,7 @@ em_status_t em_buf_resz(em_buf_t *buffer, size_t bytes, bool zero)
 {
    size_t old_size = buffer->bytes;
 
-   buffer->mi->realloc(buffer->mi->id, buffer->data, bytes);
+   buffer->mi->realloc(buffer->mi->udata, buffer->data, bytes);
    if (!buffer->data)
       return EM_OUT_OF_MEMORY;
 
@@ -55,5 +55,5 @@ em_status_t em_buf_resz(em_buf_t *buffer, size_t bytes, bool zero)
 void em_buf_free(em_buf_t *buffer)
 {
    if (buffer->data)
-      buffer->mi->free(buffer->mi->id, buffer);
+      buffer->mi->free(buffer->mi->udata, buffer);
 }
