@@ -23,3 +23,4 @@
    })
 #define __em_clamp(minv, x, maxv) (__em_min(__em_max((x), (minv)), (maxv)))
 #define __em_unused(x) (void)(x)
+#define __em_withini(minv, x, maxv) ((x) <= (maxv) && (x) >= (minv))

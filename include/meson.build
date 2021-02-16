@@ -9,6 +9,7 @@ emilia_headers = [
 	'entropygen.h',
 	'assoca.h',
 	'buf.h',
-	'bloom.h'
+	'bloom.h',
+   'pdrt.h'
 ]
 install_headers(emilia_headers, subdir : 'emilia')
