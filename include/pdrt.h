@@ -57,3 +57,9 @@ struct em_pdrt_el_s {
 };
 
 typedef struct em_pdrt_el_s em_pdrt_el_t;
+
+#define em_pdrt_getui(el) ((el).buf.uint)
+#define em_pdrt_getsi(el) ((el).buf.sint)
+#define em_pdrt_getrl(el) ((el).buf.real)
+#define em_pdrt_getbl(el) ((el).buf.boolt)
+#define em_pdrt_getbf(el) ((el).buf.ptr)
